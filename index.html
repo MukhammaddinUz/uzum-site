@@ -355,7 +355,6 @@ function getPlan(){const s=localStorage.getItem('uzumclient_session');if(!s)retu
 function setPlan(nick,plan){const a=getPlansAll();a[nick.toLowerCase()]=plan;savePlansAll(a)}
 function planDaysLeft(p){return Math.max(0,Math.ceil((p.exp-Date.now())/864e5))}
 function planStatus(){const p=getPlan();if(!p)return{has:false,detail:''};if(!p.exp)return{has:true,detail:'Cheksiz ✓'};return{has:true,detail:planDaysLeft(p)+' kun qoldi ('+new Date(p.exp).toLocaleDateString('uz-UZ')+')'}}
-function genHwid(){const h=()=>Math.floor(Math.random()*65536).toString(16).toUpperCase().padStart(4,'0');return 'UC-'+h()+'-'+h()+'-'+h()}
 function buyPlan(name){location.href='obuna.html';}
 function paintPlan(){
  const p=getPlan(),st=planStatus(),el=document.getElementById('planNote');
@@ -428,7 +427,7 @@ function paintProfile(){
  const st=planStatus();
  const pill=document.getElementById('planPill');pill.textContent=st.has?'Obuna bor ✓':'Obuna yo‘q';pill.className='pill '+(st.has?'ok':'no');
  document.getElementById('planDesc').textContent=st.has?('Obuna faol • '+st.detail+'. Almashtirish uchun Obuna sahifasiga o‘t.'):'Obuna yo‘q. Mod yuklash uchun Obuna sahifasidan obuna ol.';
- document.getElementById('hwidLine').textContent='HWID: '+(u.hwid||'—');
+  document.getElementById('hwidLine').textContent='HWID: '+(u.hwid||'— (moddan kirganda bog‘lanadi)');
 }
 function getPromoDefs(){try{const raw=localStorage.getItem('uzumclient_promo_defs');if(raw){const d=JSON.parse(raw);if(d&&typeof d==='object')return d}}catch(e){}const seed={UZUMVIP:{days:30,name:'30 kunlik',limit:0,used:0,type:'free',percent:0}};try{localStorage.setItem('uzumclient_promo_defs',JSON.stringify(seed))}catch(e){}return seed}
 function savePromoDefs(d){localStorage.setItem('uzumclient_promo_defs',JSON.stringify(d))}
@@ -448,7 +447,6 @@ function applyPfPromo(){
   used.push(code);all[key]=used;localStorage.setItem('uzumclient_promos',JSON.stringify(all));
   pr.used=(pr.used||0)+1;savePromoDefs(defs);
   setPlan(key,{name:pr.name+' (promo)',ts:Date.now(),exp:pr.days?Date.now()+pr.days*864e5:null});
-  const users=getUsers();if(!users[key].hwid){users[key].hwid=genHwid();saveUsers(users)}
   const os=getOrders();os.push({id:'UC'+Date.now().toString(36).toUpperCase(),nick:u.nick,mail:u.mail||'',plan:pr.name+' (promo)',price:'0 (promo)',card:'-',ts:Date.now(),receipt:'',status:'approved'});
   saveOrders(os);paintPlan();paintProfile();
   ok.textContent='✓ '+(pr.days?pr.days+' kunlik':'Cheksiz')+' obuna faollashdi!';ok.style.display='block';toast('Promocode qabul qilindi ✓');
@@ -595,10 +593,8 @@ function approveOrder(id){
  if(!needAdmin())return;
  const os=getOrders(),o=os.find(x=>x.id===id);if(!o)return;
  const d=planDays(o.plan);
- setPlan(o.nick,{name:o.plan,ts:Date.now(),exp:d?Date.now()+d*864e5:null});
- const users=getUsers(),ku=o.nick.toLowerCase();
- if(users[ku]&&!users[ku].hwid){users[ku].hwid=genHwid();saveUsers(users)}
- o.status='approved';saveOrders(os);refreshAdmin();toast(o.nick+': obuna tasdiqlandi ✓');
+  setPlan(o.nick,{name:o.plan,ts:Date.now(),exp:d?Date.now()+d*864e5:null});
+  o.status='approved';saveOrders(os);refreshAdmin();toast(o.nick+': obuna tasdiqlandi ✓');
 }
 function rejectOrder(id){
  if(!needAdmin())return;
@@ -614,12 +610,11 @@ function adminGive(){
  const users=getUsers();
  if(!users[nick])return toast('Bunday nick topilmadi.');
  const days=pname==='30 kunlik'?30:pname==='90 kunlik'?90:0;
- setPlan(nick,{name:pname,ts:Date.now(),exp:days?Date.now()+days*864e5:null});
-  if(!users[nick].hwid){users[nick].hwid=genHwid();saveUsers(users)}
+  setPlan(nick,{name:pname,ts:Date.now(),exp:days?Date.now()+days*864e5:null});
   refreshAdmin();toast(nick+' ga '+pname+' berildi ✓');
 }
 function adminRemovePlan(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);refreshAdmin();if((localStorage.getItem('uzumclient_session')||'').toLowerCase()===nick)paintPlan();toast(nick+': obuna olib tashlandi.')}
-function adminResetHwid(nick){if(!needAdmin())return;const users=getUsers();if(!users[nick.toLowerCase()])return;users[nick.toLowerCase()].hwid=genHwid();saveUsers(users);refreshAdmin();toast(nick+': yangi HWID berildi.')}
+function adminResetHwid(nick){if(!needAdmin())return;const users=getUsers();if(!users[nick.toLowerCase()])return;users[nick.toLowerCase()].hwid='';saveUsers(users);refreshAdmin();toast(nick+': HWID tozalandi. Moddan kirganda yangisi bog‘lanadi.')}
 function adminRestart(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);const users=getUsers();if(users[nick.toLowerCase()]){users[nick.toLowerCase()].hwid='';saveUsers(users)}refreshAdmin();toast(nick+': akkaunt restart qilindi (obuna+HWID tozalandi).')}
 function adminBlock(nick){
  if(!needAdmin())return;

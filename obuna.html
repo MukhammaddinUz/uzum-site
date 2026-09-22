@@ -153,7 +153,6 @@ function savePlansAll(p){localStorage.setItem('uzumclient_plans',JSON.stringify(
 function getPlan(){const s=localStorage.getItem('uzumclient_session');if(!s)return null;const p=getPlansAll()[s.toLowerCase()];if(!p)return null;if(p.exp&&p.exp<Date.now()){const a=getPlansAll();delete a[s.toLowerCase()];savePlansAll(a);return null}return p}
 function setPlan(nick,plan){const a=getPlansAll();a[nick.toLowerCase()]=plan;savePlansAll(a)}
 function planDaysLeft(p){return Math.max(0,Math.ceil((p.exp-Date.now())/864e5))}
-function genHwid(){const h=()=>Math.floor(Math.random()*65536).toString(16).toUpperCase().padStart(4,'0');return 'UC-'+h()+'-'+h()+'-'+h()}
 const CARDS=[
  {type:"HUMO",num:"9860 3566 4389 7651",holder:"Muxammaddin Tairov"},
  {type:"VISA",num:"4413 5976 0572 6742",holder:"Muxammaddin Tairov"}
@@ -221,10 +220,7 @@ function applyPayPromo(){
     used.push(code);all[key]=used;localStorage.setItem("uzumclient_promos",JSON.stringify(all));
     pr.used=(pr.used||0)+1;savePromoDefs(defs);
     setPlan(s,{name:pr.name+" (promo)",ts:Date.now(),exp:pr.days?Date.now()+pr.days*864e5:null});
-    const pu=getUsers(),uu=pu[s.toLowerCase()];
-    if(uu&&!uu.hwid){uu.hwid=genHwid();saveUsers(pu)}
     const users=getUsers(),u=users[key];
-    if(u&&!u.hwid){u.hwid=genHwid();saveUsers(users)}
     const os=getOrders();os.push({id:"UC"+Date.now().toString(36).toUpperCase(),nick:(u&&u.nick)||s,mail:(u&&u.mail)||"",plan:pr.name+" (promo)",price:"0 (promo)",card:"-",ts:Date.now(),receipt:"",status:"approved"});
     saveOrders(os);closePay();paintPlanLine();toast("Promocode: "+(pr.days?pr.days+" kunlik":"Cheksiz")+" bepul faollashdi ✓");
     return;
