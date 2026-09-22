@@ -345,17 +345,6 @@ html{scroll-behavior:smooth}
     </div>
   </div>
 </div>
-<div class="overlay" id="dlOverlay">
-  <div class="auth">
-    <button class="close-x" onclick="closeDl()">✕</button>
-    <h3>Modni yuklash</h3>
-    <p class="sub2">Supabase akkaunting bilan kir — obuna tekshiriladi, fayl shaxsiy nom bilan yuklanadi.</p>
-    <div class="err" id="dlErr"></div>
-    <div class="field"><label>EMAIL</label><input id="dlMail" type="email" placeholder="you@gmail.com"></div>
-    <div class="field"><label>PAROL</label><input id="dlPass" type="password" placeholder="••••••••"></div>
-    <button class="btn btn-pink" onclick="doDlLogin()">Yuklash →</button>
-  </div>
-</div>
 <div class="overlay" id="imgBox">
   <div style="position:relative;max-width:92vw">
     <img id="imgBoxPic" style="max-width:92vw;max-height:86vh;border-radius:18px;border:2px solid var(--pink);box-shadow:0 30px 100px rgba(168,85,247,.4)" alt="Chek">
@@ -471,48 +460,12 @@ function handleAvaFile(f){if(!f)return;if(!f.type||!f.type.startsWith('image/'))
 document.getElementById('pfAva').addEventListener('change',e=>handleAvaFile(e.target.files[0]));
 document.getElementById('pfAvaWrap').addEventListener('click',()=>document.getElementById('pfAva').click());
 function downloadMod(){
+  const u=curUser();if(!u)return;
   const p=getPlan();
   if(!p){toast('Avval obuna sotib ol!');location.href='obuna.html';return}
-  document.getElementById('dlErr').classList.remove('show');
-  document.getElementById('dlOverlay').classList.add('show');
-}
-function closeDl(){document.getElementById('dlOverlay').classList.remove('show')}
-document.getElementById('dlOverlay').addEventListener('click',e=>{if(e.target.id==='dlOverlay')closeDl()});
-const SUPA_H="https://zuezpltfsjhoqqkcthmh.supabase.co";
-const SUPA_K="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1ZXpwbHRmc2pob3Fxa2N0aG1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODcyMzUsImV4cCI6MjEwNTY2MzIzNX0.8DkGlhJpdyz7p2twBxJUs-n8zU5eBlM9M_36NYKx_D8";
-const MOD_JAR="UzumClient-1.0.0.jar";
-async function supa(p,o,tok){
-  o=o||{};
-  o.headers=Object.assign({apikey:SUPA_K},o.headers||{});
-  if(tok)o.headers.Authorization="Bearer "+tok;
-  const r=await fetch(SUPA_H+p,o);
-  const ct=r.headers.get("content-type")||"";
-  const b=ct.indexOf("application/json")>=0?await r.json():await r.text();
-  if(!r.ok)throw new Error((b&&b.message)||("Xato "+r.status));
-  return b;
-}
-async function doDlLogin(){
-  const em=document.getElementById('dlMail').value.trim();
-  const pw=document.getElementById('dlPass').value;
-  const err=document.getElementById('dlErr');
-  err.classList.remove('show');
-  try{
-    if(!em||!pw)throw new Error('Email va parolni kiriting.');
-    const s=await supa("/auth/v1/token?grant_type=password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:em,password:pw})});
-    if(!s.access_token)throw new Error('Kirishda xato.');
-    const prof=await supa("/rest/v1/profiles?select=sub_until,email&limit=1",{},s.access_token);
-    if(!prof.length)throw new Error('Profil topilmadi.');
-    const sub=prof[0].sub_until;
-    if(!sub||new Date(sub)<=new Date())throw new Error('Faol obuna yo‘q. Avval obuna oling.');
-    toast('Obuna tasdiqlandi, yuklanmoqda...');
-    const sg=await supa("/storage/v1/object/sign/mods/"+MOD_JAR,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expiresIn:300})},s.access_token);
-    if(!sg.signedURL)throw new Error('Fayl topilmadi.');
-    const a=document.createElement('a');
-    a.href=SUPA_H+sg.signedURL;
-    a.download='UzumClient-'+em+'.jar';
-    document.body.appendChild(a);a.click();a.remove();
-    closeDl();toast('Yuklash boshlandi ✓');
-  }catch(e){err.textContent=e.message;err.classList.add('show')}
+  const msg='Asalamu Aleykum Men UzumClient Modini Olmoqchman\nEmail : '+(u.mail||'');
+  try{window.open('https://t.me/UZUMCLIENTSUPPORT?text='+encodeURIComponent(msg),'_blank')}catch(e){location.href='https://t.me/UZUMCLIENTSUPPORT?text='+encodeURIComponent(msg)}
+  toast('Telegram ochildi — xabarni yuboring ✓');
 }
 function licenseKey(nick,hwid,exp){const h=hashPass(nick+'|'+hwid+'|'+exp).replace('h$','').toUpperCase();const s=(h+'000000000000').slice(0,12);return 'UC-'+s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8,12)}
 function downloadConfig(){
