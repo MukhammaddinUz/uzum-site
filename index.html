@@ -145,6 +145,23 @@ footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);d
 .abtns button{border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer}
 .abtns button:hover{border-color:var(--pink)}
 .abtns button.danger:hover{border-color:#ff5064;color:#ff8fa3}
+.atable tr:hover td{background:rgba(168,85,247,.05)}
+/* ADMIN PANEL */
+.astats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.astat{background:linear-gradient(180deg,#17171f,#0e0e14);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative;overflow:hidden}
+.astat::before{content:"";position:absolute;inset:0;background:radial-gradient(200px 80px at 20% 0%,rgba(168,85,247,.18),transparent 70%);pointer-events:none}
+.astat b{display:block;font-size:26px;font-weight:900}
+.astat span{color:var(--muted);font-size:12px;font-weight:700}
+.astat.warn b{color:#ffcf5c}.astat.bad b{color:#ff8fa3}.astat.ok b{color:#3ddc84}
+.atabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
+.atabs button{border:1px solid var(--line);background:#0b0b12;color:var(--muted);border-radius:999px;padding:10px 18px;font-size:14px;font-weight:800;cursor:pointer}
+.atabs button.on{background:linear-gradient(180deg,var(--pink2),var(--pink));color:#fff;border-color:transparent;box-shadow:0 0 18px rgba(168,85,247,.5)}
+.asec{background:#0b0b12;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.asec h4{font-size:18px;margin-bottom:4px}
+.asec p.d{color:var(--muted);font-size:13px;margin-bottom:12px}
+.acode{font-family:monospace;background:#14141d;border:1px dashed var(--pink);border-radius:8px;padding:4px 10px;font-weight:800;letter-spacing:.06em;cursor:pointer}
+.suscard{border:1px solid rgba(255,46,80,.4);background:rgba(255,46,80,.05);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.suscard.okb{border-color:rgba(61,220,132,.35);background:rgba(61,220,132,.05)}
 .nav-links a.on{background:rgba(168,85,247,.18);color:#fff}
 /* ANIMATSIYALAR */
 html{scroll-behavior:smooth}
@@ -208,17 +225,43 @@ html{scroll-behavior:smooth}
 
 <div id="adminView">
   <div class="card" style="margin-top:18px;margin-bottom:30px">
-    <div class="eyebrow">◈ ADMIN PANEL</div><h3 style="font-size:30px;margin:8px 0 4px">Foydalanuvchilar</h3>
-    <p style="color:var(--muted);font-size:14px;margin:4px 0 14px">Obuna berish / olib tashlash, HWID yangilash, restart va bloklash.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-      <input id="adminGiveNick" placeholder="Nick" style="flex:1;min-width:140px;background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px">
-      <select id="adminGivePlan" style="background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px"><option>30 kunlik</option><option>90 kunlik</option><option>Cheksiz</option></select>
-      <button class="btn btn-pink" onclick="adminGive()">Obuna berish</button>
+    <div class="eyebrow">◈ ADMIN PANEL</div><h3 style="font-size:30px;margin:8px 0 4px">Boshqaruv</h3>
+    <p style="color:var(--muted);font-size:14px;margin:4px 0 4px">Obuna, promokod, to'lov, gumonlilar — hammesi shu yerda.</p>
+    <div class="astats" id="adminStats"></div>
+    <div class="atabs" id="adminTabs">
+      <button data-t="users" class="on" onclick="adminTab('users')">Foydalanuvchilar</button>
+      <button data-t="promo" onclick="adminTab('promo')">Promokodlar</button>
+      <button data-t="sus" onclick="adminTab('sus')">Gumonlilar</button>
+      <button data-t="orders" onclick="adminTab('orders')">Buyurtmalar</button>
     </div>
-    <div style="overflow-x:auto"><table class="atable"><thead><tr><th>Nick</th><th>Email</th><th>Obuna</th><th>Tugaydi</th><th>HWID</th><th>Holat</th><th>Amallar</th></tr></thead><tbody id="adminRows"></tbody></table></div>
-    <div class="card" style="margin-top:18px"><div class="eyebrow">◈ BUYURTMALAR</div><h3 style="font-size:24px;margin:8px 0 4px">To'lov so'rovlari</h3>
-    <p style="color:var(--muted);font-size:14px;margin:4px 0 14px">Chekni ko'rib tasdiqlang yoki rad eting.</p>
-    <div style="overflow-x:auto"><table class="atable"><thead><tr><th>ID</th><th>Nick</th><th>Tarif</th><th>Karta</th><th>Chek</th><th>Holat</th><th>Amallar</th></tr></thead><tbody id="orderRows"></tbody></table></div></div>
+    <div id="atab-users">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <input id="adminGiveNick" placeholder="Nick" style="flex:1;min-width:140px;background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px">
+        <select id="adminGivePlan" style="background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px"><option>30 kunlik</option><option>90 kunlik</option><option>Cheksiz</option></select>
+        <button class="btn btn-pink" onclick="adminGive()">Obuna berish</button>
+      </div>
+      <div style="overflow-x:auto"><table class="atable"><thead><tr><th>Nick</th><th>Email</th><th>Obuna</th><th>Tugaydi</th><th>HWID</th><th>Holat</th><th>Amallar</th></tr></thead><tbody id="adminRows"></tbody></table></div>
+    </div>
+    <div id="atab-promo" style="display:none">
+      <div class="asec"><h4>Yangi promokod</h4><p class="d">Kod katta harfda saqlanadi. Limit 0 = cheksiz.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="promoCode" placeholder="KOD (masalan: VIP30)" style="flex:1;min-width:140px;background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px">
+          <select id="promoDays" style="background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px"><option value="30">30 kun</option><option value="90">90 kun</option><option value="0">Cheksiz</option></select>
+          <input id="promoLimit" type="number" min="0" value="0" title="Limit" style="width:110px;background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px">
+          <button class="btn btn-pink" onclick="promoCreate()">Yaratish</button>
+        </div>
+      </div>
+      <div class="asec"><h4>Barcha promokodlar</h4><p class="d">Kod ustiga bossang nusxalanadi.</p><div id="promoList"></div></div>
+    </div>
+    <div id="atab-sus" style="display:none">
+      <div class="asec"><h4>🚨 Gumonlilar</h4><p class="d">Bitta HWID bir nechta nickda ishlatilsa — akkaunt ulashilayapti.</p><div id="susList"></div></div>
+      <div class="asec"><h4>Bloklanganlar</h4><div id="blockedList"></div></div>
+    </div>
+    <div id="atab-orders" style="display:none">
+      <div class="card" style="margin-top:0"><div class="eyebrow">◈ BUYURTMALAR</div><h3 style="font-size:24px;margin:8px 0 4px">To'lov so'rovlari</h3>
+      <p style="color:var(--muted);font-size:14px;margin:4px 0 14px">Chekni ko'rib tasdiqlang yoki rad eting.</p>
+      <div style="overflow-x:auto"><table class="atable"><thead><tr><th>ID</th><th>Nick</th><th>Tarif</th><th>Karta</th><th>Chek</th><th>Holat</th><th>Amallar</th></tr></thead><tbody id="orderRows"></tbody></table></div></div>
+    </div>
   </div>
 </div>
 
@@ -385,23 +428,27 @@ function paintProfile(){
  document.getElementById('planDesc').textContent=st.has?('Obuna faol • '+st.detail+'. Almashtirish uchun Obuna sahifasiga o‘t.'):'Obuna yo‘q. Mod yuklash uchun Obuna sahifasidan obuna ol.';
  document.getElementById('hwidLine').textContent='HWID: '+(u.hwid||'—');
 }
-const PF_PROMOS={UZUMVIP:{days:30,name:'30 kunlik'}};
+function getPromoDefs(){try{const d=JSON.parse(localStorage.getItem('uzumclient_promo_defs')||'null');if(d&&Object.keys(d).length)return d}catch(e){}const seed={UZUMVIP:{days:30,name:'30 kunlik',limit:0,used:0}};try{localStorage.setItem('uzumclient_promo_defs',JSON.stringify(seed))}catch(e){}return seed}
+function savePromoDefs(d){localStorage.setItem('uzumclient_promo_defs',JSON.stringify(d))}
 function getPfPromos(){try{return JSON.parse(localStorage.getItem('uzumclient_promos')||'{}')}catch(e){return{}}}
+function promoUseOk(def){return !def.limit||(def.used||0)<def.limit}
 function applyPfPromo(){
- const u=curUser();if(!u)return;
- const code=document.getElementById('pfPromoInput').value.trim().toUpperCase();
- const err=document.getElementById('pfPromoErr'),ok=document.getElementById('pfPromoOk');
- err.classList.remove('show');ok.style.display='none';
- const pr=PF_PROMOS[code];
- if(!pr){err.textContent='Bunday promocode yo‘q.';err.classList.add('show');return}
- const all=getPfPromos(),key=u.nick.toLowerCase(),used=all[key]||[];
- if(used.includes(code)){err.textContent='Bu promocode ishlatilgan.';err.classList.add('show');return}
- used.push(code);all[key]=used;localStorage.setItem('uzumclient_promos',JSON.stringify(all));
- setPlan(key,{name:pr.name+' (promo)',ts:Date.now(),exp:Date.now()+pr.days*864e5});
- const users=getUsers();if(!users[key].hwid){users[key].hwid=genHwid();saveUsers(users)}
- const os=getOrders();os.push({id:'UC'+Date.now().toString(36).toUpperCase(),nick:u.nick,mail:u.mail||'',plan:pr.name+' (promo)',price:'0 (promo)',card:'-',ts:Date.now(),receipt:'',status:'approved'});
- saveOrders(os);paintPlan();paintProfile();
- ok.textContent='✓ 30 kunlik obuna faollashdi!';ok.style.display='block';toast('Promocode qabul qilindi ✓');
+  const u=curUser();if(!u)return;
+  const code=document.getElementById('pfPromoInput').value.trim().toUpperCase();
+  const err=document.getElementById('pfPromoErr'),ok=document.getElementById('pfPromoOk');
+  err.classList.remove('show');ok.style.display='none';
+  const defs=getPromoDefs(),pr=defs[code];
+  if(!pr){err.textContent='Bunday promocode yo‘q.';err.classList.add('show');return}
+  if(!promoUseOk(pr)){err.textContent='Bu promocode limiti tugagan.';err.classList.add('show');return}
+  const all=getPfPromos(),key=u.nick.toLowerCase(),used=all[key]||[];
+  if(used.includes(code)){err.textContent='Bu promocode ishlatilgan.';err.classList.add('show');return}
+  used.push(code);all[key]=used;localStorage.setItem('uzumclient_promos',JSON.stringify(all));
+  pr.used=(pr.used||0)+1;savePromoDefs(defs);
+  setPlan(key,{name:pr.name+' (promo)',ts:Date.now(),exp:pr.days?Date.now()+pr.days*864e5:null});
+  const users=getUsers();if(!users[key].hwid){users[key].hwid=genHwid();saveUsers(users)}
+  const os=getOrders();os.push({id:'UC'+Date.now().toString(36).toUpperCase(),nick:u.nick,mail:u.mail||'',plan:pr.name+' (promo)',price:'0 (promo)',card:'-',ts:Date.now(),receipt:'',status:'approved'});
+  saveOrders(os);paintPlan();paintProfile();
+  ok.textContent='✓ '+(pr.days?pr.days+' kunlik':'Cheksiz')+' obuna faollashdi!';ok.style.display='block';toast('Promocode qabul qilindi ✓');
 }
 function saveAva(dataURL){const u=curUser();if(!u)return;const users=getUsers();users[u.nick.toLowerCase()].ava=dataURL;saveUsers(users);paintProfile();paintUser();toast('Profil rasmi yangilandi ✓')}
 function handleAvaFile(f){if(!f)return;if(!f.type||!f.type.startsWith('image/'))return toast('Rasm fayl tanla.');if(f.size>600*1024)return toast('Rasm 600KB dan kichik bo‘lsin.');const r=new FileReader();r.onload=()=>saveAva(r.result);r.readAsDataURL(f)}
@@ -452,7 +499,73 @@ function showProfile(){paintProfile();hideSections();adminView.style.display='no
 function showMain(){profileView.style.display='none';adminView.style.display='none';showSections();navOn(null)}
 function isAdmin(){const u=curUser();return !!(u&&u.nick.toLowerCase()==='muxammaddin')}
 function needAdmin(){if(isAdmin())return true;toast('Admin huquqi kerak.');return false}
-function showAdmin(){if(!curUser()){openAuth('login');return}if(!needAdmin())return;renderAdmin();renderOrders();hideSections();profileView.style.display='none';adminView.style.display='block';window.scrollTo(0,0);revealIn(adminView);navOn('#admin')}
+function showAdmin(){if(!curUser()){openAuth('login');return}if(!needAdmin())return;adminTab('users');hideSections();profileView.style.display='none';adminView.style.display='block';window.scrollTo(0,0);revealIn(adminView);navOn('#admin')}
+function adminTab(t){
+  document.querySelectorAll('#adminTabs button').forEach(b=>b.classList.toggle('on',b.getAttribute('data-t')===t));
+  ['users','promo','sus','orders'].forEach(x=>{document.getElementById('atab-'+x).style.display=x===t?'block':'none'});
+  renderAStats();renderAdmin();renderOrders();renderPromos();renderSuspects();
+}
+function suspectGroups(){
+  const users=getUsers(),byHwid={};
+  Object.keys(users).forEach(k=>{const u=users[k];if(!u.hwid)return;(byHwid[u.hwid]=byHwid[u.hwid]||[]).push(k)});
+  return Object.keys(byHwid).filter(h=>byHwid[h].length>1).map(h=>({hwid:h,nicks:byHwid[h]}));
+}
+function renderAStats(){
+  const users=getUsers(),os=getOrders(),defs=getPromoDefs(),groups=suspectGroups();
+  let active=0,blocked=0,pending=0;
+  Object.keys(users).forEach(k=>{const u=users[k];if(u.blocked)blocked++;if(planInfoOf(k).has)active++});
+  os.forEach(o=>{if(o.status==='pending')pending++});
+  document.getElementById('adminStats').innerHTML=
+    '<div class="astat"><b>'+Object.keys(users).length+'</b><span>Userlar</span></div>'+
+    '<div class="astat ok"><b>'+active+'</b><span>Faol obuna</span></div>'+
+    '<div class="astat"><b>'+pending+'</b><span>Kutilayotgan to‘lov</span></div>'+
+    '<div class="astat"><b>'+Object.keys(defs).length+'</b><span>Promokod</span></div>'+
+    '<div class="astat '+(groups.length?'warn':'')+'"><b>'+groups.length+'</b><span>Gumonli guruh</span></div>'+
+    '<div class="astat '+(blocked?'bad':'')+'"><b>'+blocked+'</b><span>Bloklangan</span></div>';
+}
+function renderPromos(){
+  if(!needAdmin())return;
+  const defs=getPromoDefs(),box=document.getElementById('promoList');
+  const keys=Object.keys(defs).sort();
+  box.innerHTML=keys.map(code=>{const d=defs[code];
+    const left=d.limit?((d.limit-(d.used||0))+'/'+d.limit+' qoldi'):'cheksiz';
+    return '<div class="row" style="align-items:center"><span class="acode" onclick="copyPromo(\''+code+'\')" title="Nusxalash">'+code+'</span><span style="color:var(--muted);font-size:13px">'+d.name+' • '+left+'</span><span style="flex:1"></span><button class="abtns" style="border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer" onclick="promoDelete(\''+code+'\')">O‘chirish</button></div>'}).join('')||'<p style="color:var(--muted);font-size:14px">Promokod yo‘q.</p>';
+}
+function copyPromo(code){try{navigator.clipboard.writeText(code);toast('Nusxalandi: '+code)}catch(e){toast(code)}}
+function promoCreate(){
+  if(!needAdmin())return;
+  const code=document.getElementById('promoCode').value.trim().toUpperCase();
+  const days=parseInt(document.getElementById('promoDays').value,10)||0;
+  const limit=parseInt(document.getElementById('promoLimit').value,10)||0;
+  if(!/^[A-Z0-9]{3,20}$/.test(code))return toast('Kod 3-20 belgi: A-Z, 0-9.');
+  const defs=getPromoDefs();
+  if(defs[code])return toast('Bu kod bor.');
+  const name=!days?'Cheksiz':(days===30?'30 kunlik':(days===90?'90 kunlik':days+' kunlik'));
+  defs[code]={days,name,limit,used:0};savePromoDefs(defs);
+  document.getElementById('promoCode').value='';renderPromos();renderAStats();toast('Promokod yaratildi: '+code+' ✓');
+}
+function promoDelete(code){
+  if(!needAdmin())return;
+  if(!confirm(code+' o‘chirilsinmi?'))return;
+  const defs=getPromoDefs();delete defs[code];savePromoDefs(defs);
+  renderPromos();renderAStats();toast('O‘chirildi.');
+}
+function renderSuspects(){
+  if(!needAdmin())return;
+  const users=getUsers(),groups=suspectGroups(),box=document.getElementById('susList');
+  box.innerHTML=groups.map(g=>'<div class="suscard"><div style="margin-bottom:8px"><span class="acode">'+g.hwid+'</span> <span style="color:var(--muted);font-size:13px">'+g.nicks.length+' ta nick bitta HWID da</span></div>'+
+    g.nicks.map(k=>'<div class="row" style="align-items:center;margin-bottom:6px"><b>'+users[k].nick+'</b><span style="color:var(--muted);font-size:13px">'+users[k].mail+'</span><span style="flex:1"></span>'+(users[k].blocked?'<span class="pill bad">Bloklangan</span>':'<button class="abtns" style="border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer" onclick="adminBlock(\''+k+'\')">Bloklash</button>')+'</div>').join('')+
+    '<div class="row"><button class="abtns" style="border:1px solid #ff5064;background:transparent;color:#ff8fa3;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer" onclick="suspectBlockAll(\''+g.hwid+'\')">Hammasini bloklash</button></div></div>').join('')||'<div class="suscard okb">Gumonli harakat yo‘q. Hammasi toza ✅</div>';
+  const blocked=Object.keys(users).filter(k=>users[k].blocked);
+  document.getElementById('blockedList').innerHTML=blocked.map(k=>'<div class="row" style="align-items:center;margin-bottom:6px"><b>'+users[k].nick+'</b><span style="color:var(--muted);font-size:13px">'+users[k].mail+'</span><span style="flex:1"></span><button class="abtns" style="border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer" onclick="adminBlock(\''+k+'\')">Unblock</button></div>').join('')||'<p style="color:var(--muted);font-size:14px">Bo‘sh.</p>';
+}
+function suspectBlockAll(hwid){
+  if(!needAdmin())return;
+  if(!confirm('Shu HWID dagi hamma nick bloklansinmi?'))return;
+  const users=getUsers();let n=0;
+  Object.keys(users).forEach(k=>{if(users[k].hwid===hwid&&k!=='muxammaddin'&&!users[k].blocked){users[k].blocked=true;n++}});
+  saveUsers(users);renderSuspects();renderAdmin();renderAStats();toast(n+' ta akkaunt bloklandi.');
+}
 function planInfoOf(nick){const pl=getPlansAll()[nick.toLowerCase()];if(!pl)return{has:false};if(pl.exp&&pl.exp<Date.now())return{has:false,expired:true};if(!pl.exp)return{has:true,text:pl.name+' • Cheksiz'};return{has:true,text:pl.name+' • '+Math.max(0,Math.ceil((pl.exp-Date.now())/864e5))+' kun qoldi',until:new Date(pl.exp).toLocaleDateString('uz-UZ')}}
 function renderAdmin(){
  if(!needAdmin())return;
@@ -471,6 +584,7 @@ function renderOrders(){
  tb.innerHTML=os.map(o=>'<tr><td>'+o.id+'</td><td><b>'+o.nick+'</b></td><td>'+o.plan+' • '+o.price+'</td><td>'+(o.card||'—')+'</td><td>'+(o.receipt?'<img src="'+o.receipt+'" title="Kattalashtirish uchun bosing" style="width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--pink);cursor:zoom-in" onclick="openReceipt(this.src)">':'—')+'</td><td>'+(o.status==='pending'?'<span class="pill no">Kutilmoqda</span>':o.status==='approved'?'<span class="pill ok">Tasdiqlandi</span>':'<span class="pill bad">Rad etildi</span>')+'</td>'+
  '<td>'+(o.status==='pending'?'<div class="abtns"><button onclick="approveOrder(\''+o.id+'\')">Tasdiqlash</button><button class="danger" onclick="rejectOrder(\''+o.id+'\')">Rad etish</button></div>':'—')+'</td></tr>').join('')||'<tr><td colspan="7">So‘rov yo‘q.</td></tr>';
 }
+function refreshAdmin(){renderAStats();renderAdmin();renderOrders();renderPromos();renderSuspects();}
 function approveOrder(id){
  if(!needAdmin())return;
  const os=getOrders(),o=os.find(x=>x.id===id);if(!o)return;
@@ -478,12 +592,12 @@ function approveOrder(id){
  setPlan(o.nick,{name:o.plan,ts:Date.now(),exp:d?Date.now()+d*864e5:null});
  const users=getUsers(),ku=o.nick.toLowerCase();
  if(users[ku]&&!users[ku].hwid){users[ku].hwid=genHwid();saveUsers(users)}
- o.status='approved';saveOrders(os);renderOrders();renderAdmin();toast(o.nick+': obuna tasdiqlandi ✓');
+ o.status='approved';saveOrders(os);refreshAdmin();toast(o.nick+': obuna tasdiqlandi ✓');
 }
 function rejectOrder(id){
  if(!needAdmin())return;
  const os=getOrders(),o=os.find(x=>x.id===id);if(!o)return;
- o.status='rejected';saveOrders(os);renderOrders();renderAdmin();toast(id+': rad etildi.');
+ o.status='rejected';saveOrders(os);refreshAdmin();toast(id+': rad etildi.');
 }
 function openReceipt(src){document.getElementById('imgBoxPic').src=src;document.getElementById('imgBox').classList.add('show')}
 function closeReceipt(){const o=document.getElementById('imgBox');if(o)o.classList.remove('show')}
@@ -495,17 +609,17 @@ function adminGive(){
  if(!users[nick])return toast('Bunday nick topilmadi.');
  const days=pname==='30 kunlik'?30:pname==='90 kunlik'?90:0;
  setPlan(nick,{name:pname,ts:Date.now(),exp:days?Date.now()+days*864e5:null});
- if(!users[nick].hwid){users[nick].hwid=genHwid();saveUsers(users)}
- renderAdmin();toast(nick+' ga '+pname+' berildi ✓');
+  if(!users[nick].hwid){users[nick].hwid=genHwid();saveUsers(users)}
+  refreshAdmin();toast(nick+' ga '+pname+' berildi ✓');
 }
-function adminRemovePlan(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);renderAdmin();if((localStorage.getItem('uzumclient_session')||'').toLowerCase()===nick)paintPlan();toast(nick+': obuna olib tashlandi.')}
-function adminResetHwid(nick){if(!needAdmin())return;const users=getUsers();if(!users[nick.toLowerCase()])return;users[nick.toLowerCase()].hwid=genHwid();saveUsers(users);renderAdmin();toast(nick+': yangi HWID berildi.')}
-function adminRestart(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);const users=getUsers();if(users[nick.toLowerCase()]){users[nick.toLowerCase()].hwid='';saveUsers(users)}renderAdmin();toast(nick+': akkaunt restart qilindi (obuna+HWID tozalandi).')}
+function adminRemovePlan(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);refreshAdmin();if((localStorage.getItem('uzumclient_session')||'').toLowerCase()===nick)paintPlan();toast(nick+': obuna olib tashlandi.')}
+function adminResetHwid(nick){if(!needAdmin())return;const users=getUsers();if(!users[nick.toLowerCase()])return;users[nick.toLowerCase()].hwid=genHwid();saveUsers(users);refreshAdmin();toast(nick+': yangi HWID berildi.')}
+function adminRestart(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);const users=getUsers();if(users[nick.toLowerCase()]){users[nick.toLowerCase()].hwid='';saveUsers(users)}refreshAdmin();toast(nick+': akkaunt restart qilindi (obuna+HWID tozalandi).')}
 function adminBlock(nick){
  if(!needAdmin())return;
  if(nick.toLowerCase()==='muxammaddin')return toast('O‘zingni bloklay olmaysan.');
  const users=getUsers();if(!users[nick.toLowerCase()])return;
- users[nick.toLowerCase()].blocked=!users[nick.toLowerCase()].blocked;saveUsers(users);renderAdmin();
+  users[nick.toLowerCase()].blocked=!users[nick.toLowerCase()].blocked;saveUsers(users);refreshAdmin();
  toast(nick+(users[nick.toLowerCase()].blocked?': bloklandi.':': blokdan chiqarildi.'));
 }
 document.querySelectorAll('a[href^="#"]').forEach(a=>{const h=a.getAttribute('href');if(false){}else if(h==='#admin'){a.addEventListener('click',e=>{e.preventDefault();showAdmin()})}else if(h&&h!=='#login'){a.addEventListener('click',()=>{if(profileView.style.display==='block'||adminView.style.display==='block')showMain()})}});

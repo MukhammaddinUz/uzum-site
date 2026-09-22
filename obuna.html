@@ -194,23 +194,26 @@ function confirmPay(){
  paintPlanLine();toast("Sorovingiz yuborildi ✓");
 }
 document.getElementById("payModal").addEventListener("click",e=>{if(e.target.id==="payModal")closePay()});
-const PROMOS={UZUMVIP:{days:30,name:"30 kunlik"}};
+function getPromoDefs(){try{const d=JSON.parse(localStorage.getItem('uzumclient_promo_defs')||'null');if(d&&Object.keys(d).length)return d}catch(e){}const seed={UZUMVIP:{days:30,name:'30 kunlik',limit:0,used:0}};try{localStorage.setItem('uzumclient_promo_defs',JSON.stringify(seed))}catch(e){}return seed}
+function savePromoDefs(d){localStorage.setItem('uzumclient_promo_defs',JSON.stringify(d))}
 function getPromos(){try{return JSON.parse(localStorage.getItem("uzumclient_promos")||"{}")}catch(e){return{}}}
 function applyPayPromo(){
- const s=localStorage.getItem("uzumclient_session");if(!s)return;
- const code=document.getElementById("payPromo").value.trim().toUpperCase();
- const pr=PROMOS[code];
- if(!pr)return toast("Bunday promocode yoq.");
- const all=getPromos(),key=s.toLowerCase(),used=all[key]||[];
- if(used.includes(code))return toast("Bu promocode ishlatilgan.");
- used.push(code);all[key]=used;localStorage.setItem("uzumclient_promos",JSON.stringify(all));
- setPlan(s,{name:pr.name+" (promo)",ts:Date.now(),exp:Date.now()+pr.days*864e5});
- const pu=getUsers(),uu=pu[s.toLowerCase()];
- if(uu&&!uu.hwid){uu.hwid=genHwid();saveUsers(pu)}
- const users=getUsers(),u=users[key];
- if(u&&!u.hwid){u.hwid=genHwid();saveUsers(users)}
- const os=getOrders();os.push({id:"UC"+Date.now().toString(36).toUpperCase(),nick:(u&&u.nick)||s,mail:(u&&u.mail)||"",plan:pr.name+" (promo)",price:"0 (promo)",card:"-",ts:Date.now(),receipt:"",status:"approved"});
- saveOrders(os);closePay();paintPlanLine();toast("Promocode: 30 kunlik bepul faollashdi ✓");
+  const s=localStorage.getItem("uzumclient_session");if(!s)return;
+  const code=document.getElementById("payPromo").value.trim().toUpperCase();
+  const defs=getPromoDefs(),pr=defs[code];
+  if(!pr)return toast("Bunday promocode yoq.");
+  if(pr.limit&&(pr.used||0)>=pr.limit)return toast("Bu promocode limiti tugagan.");
+  const all=getPromos(),key=s.toLowerCase(),used=all[key]||[];
+  if(used.includes(code))return toast("Bu promocode ishlatilgan.");
+  used.push(code);all[key]=used;localStorage.setItem("uzumclient_promos",JSON.stringify(all));
+  pr.used=(pr.used||0)+1;savePromoDefs(defs);
+  setPlan(s,{name:pr.name+" (promo)",ts:Date.now(),exp:pr.days?Date.now()+pr.days*864e5:null});
+  const pu=getUsers(),uu=pu[s.toLowerCase()];
+  if(uu&&!uu.hwid){uu.hwid=genHwid();saveUsers(pu)}
+  const users=getUsers(),u=users[key];
+  if(u&&!u.hwid){u.hwid=genHwid();saveUsers(users)}
+  const os=getOrders();os.push({id:"UC"+Date.now().toString(36).toUpperCase(),nick:(u&&u.nick)||s,mail:(u&&u.mail)||"",plan:pr.name+" (promo)",price:"0 (promo)",card:"-",ts:Date.now(),receipt:"",status:"approved"});
+  saveOrders(os);closePay();paintPlanLine();toast("Promocode: "+(pr.days?pr.days+" kunlik":"Cheksiz")+" bepul faollashdi ✓");
 }
 function logout(){localStorage.removeItem('uzumclient_session');location.reload()}
 function paintHeader(){
