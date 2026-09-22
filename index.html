@@ -1,0 +1,522 @@
+﻿<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UZUM CLIENT - Minecraft Cheat Client | Yuklash</title>
+<meta name="description" content="UZUM CLIENT - dark uzum-binafsha Minecraft cheat client. FPS Boost, PvP modlar, kastomizatsiya.">
+<link rel="icon" href="art/brand/uzumclient-logo.png">
+<style>
+:root{
+  --bg:#08080c; --bg2:#0f0f16; --card:#14141d; --card2:#1a1a26;
+  --line:#262633; --ink:#f5f3f7; --muted:#a7a3b8;
+  --pink:#a855f7; --pink2:#c084fc; --pink-dark:#6d28d9;
+  --pink-glow:0 0 24px rgba(168,85,247,.45),0 4px 0 #4c1d95;
+  --radius:18px; --radius-lg:28px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,rgba(168,85,247,.14),transparent 60%),radial-gradient(900px 500px at 0% 20%,rgba(168,85,247,.08),transparent 60%),var(--bg);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+header{position:sticky;top:12px;z-index:60}
+.nav{display:flex;align-items:center;gap:12px;background:rgba(20,20,29,.9);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:999px;padding:10px 12px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:900;letter-spacing:.08em}
+.brand img{width:32px;height:31px;object-fit:cover;border-radius:9px;filter:drop-shadow(0 0 12px rgba(168,85,247,.6))}
+.brand b{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-size:22px;letter-spacing:.1em}
+.brand b i{color:var(--pink);font-style:normal}
+.nav-links{display:flex;gap:2px;margin-left:6px}
+.nav-links a{text-decoration:none;padding:9px 14px;border-radius:999px;font-weight:700;color:var(--muted);font-size:15px}
+.nav-links a:hover{background:#1f1f2c;color:#fff}
+.spacer{flex:1}
+.btn{border:0;cursor:pointer;font-weight:800;border-radius:999px;padding:11px 20px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.18s;font-size:15px}
+.btn-pink{background:linear-gradient(180deg,var(--pink2),var(--pink));color:#fff;box-shadow:var(--pink-glow)}
+.btn-pink:hover{transform:translateY(-1px);box-shadow:0 0 34px rgba(168,85,247,.65),0 4px 0 #4c1d95}
+.btn-ghost{background:#1c1c28;color:var(--ink);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--pink);color:#fff}
+.user-chip{display:none;align-items:center;gap:8px;background:#1c1c28;border:1px solid var(--pink);border-radius:999px;padding:6px 6px 6px 14px;font-weight:800}
+.user-chip span.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(180deg,var(--pink),var(--pink-dark));display:grid;place-items:center;font-size:14px}
+.user-chip img.avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.hero{margin-top:18px;background:linear-gradient(180deg,#17121a,#0c0c12);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;position:relative}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 320px at 20% 0%,rgba(168,85,247,.22),transparent 60%);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;position:relative}
+.hero-left{padding:50px 20px 42px 44px}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(168,85,247,.12);color:#d8b4fe;border:1px solid rgba(168,85,247,.35);border-radius:999px;padding:7px 14px;font-weight:800;font-size:13px;letter-spacing:.1em}
+h1{font-family:"Barlow Condensed",sans-serif;font-size:clamp(60px,8vw,108px);line-height:.88;margin:18px 0 8px;letter-spacing:.01em}
+h1 span{color:transparent;-webkit-text-stroke:2px var(--pink);text-shadow:0 0 30px rgba(168,85,247,.4)}
+.sub{color:var(--muted);font-size:17px;max-width:46ch;line-height:1.6}
+.ip-box{margin-top:22px;background:#0d0d14;border:1px solid var(--line);border-left:3px solid var(--pink);border-radius:var(--radius);padding:10px;display:flex;align-items:center;gap:10px;max-width:480px;cursor:pointer}
+.ip-box:hover{border-color:var(--pink)}
+.ip-box code{font-size:20px;font-weight:900;padding:8px 10px;color:#fff}
+.ip-box small{display:block;color:var(--muted);font-weight:600;font-size:13px}
+.status{display:flex;align-items:center;gap:10px;margin-top:14px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+.dot{width:10px;height:10px;border-radius:50%;background:#3ddc84;box-shadow:0 0 0 6px rgba(61,220,132,.15);animation:pulse 2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(61,220,132,.06)}}
+.hero-right{position:relative;min-height:440px;background:#000}
+.hero-right img.poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;filter:saturate(1.1) contrast(1.05)}
+.hero-right::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#121018 0%,transparent 28%,transparent 60%,rgba(168,85,247,.25) 100%),linear-gradient(0deg,rgba(0,0,0,.6),transparent 50%)}
+.play-card{position:absolute;left:22px;right:22px;bottom:22px;z-index:2;background:rgba(18,18,26,.9);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:20px;padding:14px 16px;display:flex;align-items:center;gap:14px}
+.play-card img{width:51px;height:51px;border-radius:12px;object-fit:cover;border:1px solid var(--pink)}
+.modes{padding:60px 0 10px}
+.eyebrow{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.16em;font-size:13px;color:var(--pink)}
+h2{font-family:"Barlow Condensed",sans-serif;font-size:clamp(34px,5vw,56px);margin:10px 0 6px}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px}
+.mode{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;transition:.2s}
+.mode:hover{transform:translateY(-4px);border-color:var(--pink);box-shadow:0 20px 60px rgba(168,85,247,.18)}
+.mode .imgw{position:relative}
+.mode img{width:100%;height:200px;object-fit:cover;display:block}
+.mode .imgw::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(10,10,15,.7),transparent 55%)}
+.mode-body{padding:20px;display:flex;flex-direction:column;flex:1}
+.tag{font-size:12px;font-weight:900;letter-spacing:.12em;background:linear-gradient(180deg,var(--pink2),var(--pink));color:#fff;border-radius:999px;padding:5px 12px;display:inline-block;align-self:flex-start;box-shadow:0 0 16px rgba(168,85,247,.4)}
+.mode-body h3{margin:12px 0 6px;font-size:26px}
+.mode-body p{color:var(--muted);line-height:1.6;margin:0 0 14px;font-size:15px;min-height:72px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips span{background:#0e0e15;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;color:var(--muted)}
+.section{padding:34px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:24px;padding:26px}
+.card h3{margin:0 0 8px;font-size:24px}
+.steps{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:12px}
+.steps li{background:#0d0d14;border:1px solid var(--line);border-radius:16px;padding:14px 16px;line-height:1.55;color:var(--muted)}
+.steps li b{color:#fff}
+code.ip{background:#000;color:var(--pink2);border:1px solid rgba(168,85,247,.4);border-radius:8px;padding:2px 8px;font-weight:800}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:10px}
+.faq summary{cursor:pointer;font-weight:800;font-size:17px}
+.faq summary:hover{color:var(--pink2)}
+.faq p{color:var(--muted);line-height:1.65}
+.discord{background:linear-gradient(135deg,#1a0e16,#0f0f16 60%),radial-gradient(500px 200px at 80% 0%,rgba(168,85,247,.3),transparent);border:1px solid rgba(168,85,247,.35);border-radius:28px;padding:32px;display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:center;margin:20px 0 30px}
+.discord h2{margin:8px 0}
+.discord p{color:var(--muted)}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:16px;padding:12px 18px;min-width:130px}
+.stat b{font-size:24px;display:block;color:#fff}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+/* AUTH */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;place-items:center;z-index:100;padding:18px}
+.overlay.show{display:grid}
+.auth{width:100%;max-width:420px;background:linear-gradient(180deg,#17171f,#0e0e14);border:1px solid rgba(168,85,247,.4);border-radius:26px;padding:28px;box-shadow:0 30px 100px rgba(168,85,247,.25);position:relative}
+.auth::before{content:"";position:absolute;top:0;left:28px;right:28px;height:2px;background:linear-gradient(90deg,transparent,var(--pink),transparent)}
+.auth h3{margin:0;font-size:28px;font-family:"Barlow Condensed",sans-serif;letter-spacing:.02em}
+.auth p.sub2{color:var(--muted);margin:6px 0 18px;font-size:14px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:#0b0b11;border:1px solid var(--line);border-radius:999px;padding:4px;margin-bottom:18px}
+.tabs button{border:0;background:transparent;color:var(--muted);font-weight:800;padding:10px;border-radius:999px;cursor:pointer}
+.tabs button.active{background:linear-gradient(180deg,var(--pink2),var(--pink));color:#fff;box-shadow:0 0 18px rgba(168,85,247,.5)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;font-weight:800;color:var(--muted);margin-bottom:6px;letter-spacing:.04em}
+.field input{width:100%;background:#0b0b12;border:1px solid var(--line);border-radius:14px;padding:13px 14px;color:#fff;font-size:15px;outline:none}
+.field input:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(168,85,247,.2)}
+.auth .btn-pink{width:100%;justify-content:center;margin-top:8px;padding:13px}
+.close-x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#0b0b12;color:#fff;cursor:pointer}
+.err{display:none;background:rgba(255,46,80,.12);border:1px solid rgba(255,46,80,.4);color:#ff8fa3;border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.err.show{display:block}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(180deg,var(--pink2),var(--pink));color:#fff;padding:12px 22px;border-radius:999px;opacity:0;transition:.3s;font-weight:800;z-index:200;box-shadow:0 10px 40px rgba(168,85,247,.5)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* PROFILE */
+.prof{max-width:560px;max-height:92vh;overflow-y:auto}
+.prof .avatar-big{width:56px;height:56px;min-width:56px;border-radius:50%;background:linear-gradient(180deg,var(--pink2),var(--pink-dark));display:grid;place-items:center;font-size:24px;font-weight:900;box-shadow:0 0 24px rgba(168,85,247,.5)}
+.pcard{background:#0b0b12;border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:12px}
+.pcard b{font-size:16px}
+.pcard .sub2{color:var(--muted);font-size:13px;margin:4px 0 12px}
+.prof input{width:100%;background:#14141d;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px;outline:none}
+.prof input:focus{border-color:var(--pink)}
+.pcard .row{display:flex;gap:8px;flex-wrap:wrap}
+.pcard .row .btn{flex:1;justify-content:center;white-space:nowrap}
+.chips span.hot{border-color:var(--pink);color:#e9d5ff;background:rgba(168,85,247,.1)}
+.pf-top{display:flex;align-items:center;gap:14px;position:relative}
+.pf-top::before{content:"";position:absolute;top:-28px;left:-28px;right:-28px;height:120px;background:radial-gradient(400px 120px at 20% 0%,rgba(168,85,247,.25),transparent 70%);pointer-events:none}
+.pf-logo{width:48px;height:48px;min-width:48px;border-radius:16px;object-fit:cover;border:0;box-shadow:0 0 30px rgba(168,85,247,.65),0 0 90px rgba(168,85,247,.28);position:relative}
+.mini-eyebrow{font-weight:900;letter-spacing:.16em;font-size:11px;color:var(--pink2)}
+.pf-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pf-cards .pcard{margin-top:12px}
+@media(max-width:560px){.pf-cards{grid-template-columns:1fr}.prof{padding:22px}}
+/* OBUNA VIEW */
+#profileView{display:none}
+#adminView{display:none}
+#pfAvaWrap{cursor:pointer}
+#pfAvaWrap::after{content:'📷';position:absolute;inset:0;display:grid;place-items:center;font-size:22px;background:rgba(0,0,0,.55);border-radius:16px;opacity:0;transition:opacity .2s}
+#pfAvaWrap:hover::after{opacity:1}
+.atable{width:100%;min-width:880px;border-collapse:collapse;font-size:14px}
+.atable th{text-align:left;color:var(--muted);font-size:12px;letter-spacing:.06em;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.atable td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+.pill{display:inline-block;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800}
+.pill.ok{background:rgba(61,220,132,.12);color:#3ddc84;border:1px solid rgba(61,220,132,.4)}
+.pill.bad{background:rgba(255,46,80,.12);color:#ff8fa3;border:1px solid rgba(255,46,80,.4)}
+.pill.no{background:#0e0e15;color:var(--muted);border:1px solid var(--line)}
+.abtns{display:flex;gap:6px;flex-wrap:wrap}
+.abtns button{border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer}
+.abtns button:hover{border-color:var(--pink)}
+.abtns button.danger:hover{border-color:#ff5064;color:#ff8fa3}
+.nav-links a.on{background:rgba(168,85,247,.18);color:#fff}
+/* ANIMATSIYALAR */
+html{scroll-behavior:smooth}
+.btn:active{transform:scale(.96)}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.16,1,.3,1)}
+.rv.in{opacity:1;transform:none}
+.rv[data-d="1"]{transition-delay:.08s}.rv[data-d="2"]{transition-delay:.16s}.rv[data-d="3"]{transition-delay:.24s}
+.overlay{opacity:0;transition:opacity .25s ease}
+.overlay.show{opacity:1}
+.overlay .auth{transform:translateY(16px) scale(.97);transition:transform .32s cubic-bezier(.16,1,.3,1)}
+.overlay.show .auth{transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+@media(max-width:900px){.hero-grid,.two,.discord,.mode-grid{grid-template-columns:1fr}.hero-left{padding:30px 22px}.nav-links{display:none}.hero-right{min-height:300px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <nav class="nav">
+    <a class="brand" href="#top"><img src="art/brand/uzumclient-logo.png" alt="Uzum Client"><b>UZUM <i>CLIENT</i></b></a>
+    <div class="nav-links"><a href="#funksiyalar">Funksiyalar</a><a href="obuna.html">Obuna</a><a href="#videolar">Videolar</a><a href="#yuklash">Yuklash</a><a href="#admin" id="adminLink" style="display:none">Admin</a></div>
+    <div class="spacer"></div>
+    <div id="guestBtns" style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="openAuth('login')">Kirish</button>
+      <button class="btn btn-pink" onclick="openAuth('register')">Register</button>
+    </div>
+    <div class="user-chip" id="userChip" onclick="openProfile()" title="Hisobim" style="cursor:pointer"><span class="avatar" id="userAvatar">H</span><img class="avatar" id="userAvatarImg" style="display:none" alt=""><span>Hisobim</span><span style="color:var(--pink2)">→</span></div>
+    <button class="btn btn-ghost" id="logoutBtn" style="display:none" onclick="logout()">Chiqish →</button>
+  </nav>
+</header>
+
+
+
+<div id="profileView">
+  <div class="card" style="margin-top:18px">
+    <div class="pf-top">
+      <span id="pfAvaWrap" style="position:relative;cursor:pointer" title="Rasmni almashtirish"><img class="pf-logo" id="pfAvatarImg" src="art/brand/uzumclient-logo.png" alt="Profil rasmi"><span class="avatar-big" id="pfAvatarLetter" style="display:none">U</span></span>
+      <div style="position:relative"><div class="mini-eyebrow">◈ MENING PROFILIM</div><h3 id="pfNick" style="margin:2px 0 0;font-size:30px">—</h3><p id="pfMail" style="margin:2px 0 0;color:var(--muted);font-size:14px">—</p></div>
+    </div>
+    <input id="pfAva" type="file" accept="image/*" style="display:none">
+  </div>
+  <div class="pf-cards" style="margin-bottom:30px">
+    <div class="pcard"><b>⬇ Yuklashlar</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Mod — obuna bilan. Config — bepul.</p>
+      <div class="row"><button class="btn btn-pink" onclick="downloadMod()">Modni yuklash</button><button class="btn btn-pink" onclick="downloadConfig()">Configni yuklash</button></div>
+    </div>
+    <div class="pcard"><b>💎 Obunam</b><p style="margin:8px 0 4px"><span class="pill no" id="planPill">Obuna yo'q</span></p><p id="planDesc" style="color:var(--muted);font-size:13px;margin:4px 0 12px">Hozircha faol obunang yo'q.</p>
+      <p id="hwidLine" style="color:var(--muted);font-size:13px;margin:0 0 12px">HWID: —</p>
+      <div class="row"><button class="btn btn-pink" onclick="location.href='obuna.html'">Obuna olish →</button></div>
+    </div>
+    <div class="pcard"><b>🎟 Promocode</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Kod yozib obuna ol. Masalan: UZUMVIP</p>
+      <div class="row"><input id="pfPromoInput" placeholder="Promo-kod" style="flex:2;min-width:110px"><button class="btn btn-pink" onclick="applyPfPromo()">OK</button></div>
+      <div class="err" id="pfPromoErr" style="margin:10px 0 0"></div><p id="pfPromoOk" style="display:none;color:#3ddc84;font-size:13px;margin:10px 0 0"></p>
+    </div>
+    <div class="pcard"><b>🔒 Parol</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Hozirgi parolni tasdiqla.</p>
+      <div style="display:grid;gap:8px"><input id="oldPass" type="password" placeholder="Hozirgi parol"><input id="newPass" type="password" placeholder="Yangi (6+ belgi)"></div>
+      <div class="err" id="passErr" style="margin:10px 0 0"></div>
+      <div style="margin-top:10px"><button class="btn btn-pink" style="width:100%;justify-content:center" onclick="changePass()">Saqlash</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="adminView">
+  <div class="card" style="margin-top:18px;margin-bottom:30px">
+    <div class="eyebrow">◈ ADMIN PANEL</div><h3 style="font-size:30px;margin:8px 0 4px">Foydalanuvchilar</h3>
+    <p style="color:var(--muted);font-size:14px;margin:4px 0 14px">Obuna berish / olib tashlash, HWID yangilash, restart va bloklash.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <input id="adminGiveNick" placeholder="Nick" style="flex:1;min-width:140px;background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px">
+      <select id="adminGivePlan" style="background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px"><option>30 kunlik</option><option>90 kunlik</option><option>Cheksiz</option></select>
+      <button class="btn btn-pink" onclick="adminGive()">Obuna berish</button>
+    </div>
+    <div style="overflow-x:auto"><table class="atable"><thead><tr><th>Nick</th><th>Email</th><th>Obuna</th><th>Tugaydi</th><th>HWID</th><th>Holat</th><th>Amallar</th></tr></thead><tbody id="adminRows"></tbody></table></div>
+    <div class="card" style="margin-top:18px"><div class="eyebrow">◈ BUYURTMALAR</div><h3 style="font-size:24px;margin:8px 0 4px">To'lov so'rovlari</h3>
+    <p style="color:var(--muted);font-size:14px;margin:4px 0 14px">Chekni ko'rib tasdiqlang yoki rad eting.</p>
+    <div style="overflow-x:auto"><table class="atable"><thead><tr><th>ID</th><th>Nick</th><th>Tarif</th><th>Karta</th><th>Chek</th><th>Holat</th><th>Amallar</th></tr></thead><tbody id="orderRows"></tbody></table></div></div>
+  </div>
+</div>
+
+<section class="hero" id="top">
+  <div class="hero-grid">
+    <div class="hero-left">
+      <h1>UZUM<br><span>CLIENT</span></h1>
+      <p class="sub">O'yiningni yangi darajaga olib chiq — tezlik, uslub va nazorat bitta clientda.</p>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:30px;letter-spacing:.04em;margin-top:22px">UZUM CLIENT <span style="color:var(--pink2)">v2.5</span></div>
+      <div class="chips" style="margin-top:10px"><span>1.21.4</span><span>Fabric</span><span>Windows 10/11</span><span style="border-color:var(--pink);color:#e9d5ff">Bepul yangilanishlar</span></div>
+      <div class="stats" style="margin-top:16px;max-width:480px">
+        <div class="stat"><b>Lagsiz</b><span>silliq o'yin</span></div>
+        <div class="stat"><b>100+</b><span>kuchli funksiya</span></div>
+        <div class="stat"><b>24/7</b><span>yordam</span></div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <img class="poster" src="media/mana.jpg" alt="Uzum Client obzori">
+    </div>
+  </div>
+</section>
+
+<section class="modes" id="funksiyalar">
+  <div class="eyebrow">◈ FUNKSIYALAR</div><h2>Nega UZUM CLIENT?</h2>
+  <p style="color:var(--muted);max-width:70ch">O'yinni tezlatadigan, PvP da ustunlik beradigan va ko'rinishni chiroyli qiladigan asosiy imkoniyatlar.</p>
+  <div class="mode-grid">
+    <article class="mode"><div class="imgw"><img src="art/approved/anarxiya-nano-v1-900.webp" alt="PvP modlar" loading="lazy"></div><div class="mode-body"><span class="tag">PVP FUNKSIYALAR</span><h3>PvP Ustunlik</h3><p>PvP da ustunlik beradi: Kill Aura, Trigger Bot va boshqa ko'plab kuchli funksiyalar.</p><div style="margin-top:14px"><button class="btn btn-pink" onclick="location.href='obuna.html'">Obuna sotib olish</button></div></div></article>
+    <article class="mode"><div class="imgw"><img src="art/approved/boxpvp-nano-v4-900.webp" alt="FPS Boost" loading="lazy"></div><div class="mode-body"><span class="tag">TEZLIK</span><h3>Silliq O'yin</h3><p>FPS ga ta'sir qilmaydi — o'rniga optimizatsiya: lagsiz va bagsiz toza o'yin. Speed, Fly va ko'plab funksiyalar.</p><div style="margin-top:14px"><button class="btn btn-pink" onclick="location.href='obuna.html'">Obuna sotib olish</button></div></div></article>
+    <article class="mode"><div class="imgw"><img src="art/approved/survival-nano-v2-900.webp" alt="Kastomizatsiya" loading="lazy"></div><div class="mode-body"><span class="tag">DIZAYN</span><h3>Kastomizatsiya</h3><p>Juda chiroyli dizayn — hamma narsa ko'zni quvontadi. Mavzularni almashtir, Cape va HUD ni o'zingcha sozla.</p><div style="margin-top:14px"><button class="btn btn-pink" onclick="location.href='obuna.html'">Obuna sotib olish</button></div></div></article>
+  </div>
+</section>
+
+
+
+<section class="section" id="videolar">
+  <div class="two">
+    <div class="card"><div class="eyebrow">▶ VIDEOLAR</div><h3>Client obzori</h3><p style="color:var(--muted)">Uzum Client YouTube kanali. Funksiyalar video sharhda.</p><div style="position:relative;padding-top:56.25%;border-radius:16px;overflow:hidden;margin-top:12px;border:1px solid var(--line)"><iframe src="https://www.youtube.com/embed/Dd2xQ-wXOmk" title="UZUM CLIENT treyleri" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div><div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-pink" href="https://www.youtube.com/watch?v=Dd2xQ-wXOmk" target="_blank" rel="noreferrer">▶ Treylerni ko'rish</a><a class="btn btn-ghost" href="https://www.youtube.com/@uzumclient" target="_blank" rel="noreferrer">YouTube kanal ↗</a></div></div>
+    <div class="card" id="yuklash"><div class="eyebrow">⚡ AFZALLIKLAR</div><h3>Nega UZUM CLIENT?</h3>
+      <ol class="steps"><li><b>✓</b> Lagsiz va bagsiz, silliq o'yin — FPS ga zarar yetkazmaydi.</li><li><b>✓</b> Kill Aura, Trigger Bot, Speed, Fly — 30+ kuchli funksiya bitta clientda.</li><li><b>✓</b> Fabric 1.21.4 da barqaror ishlaydi, o'rnatish bir necha daqiqa.</li><li><b>✓</b> Tayyor config, bepul yangilanishlar va 24/7 yordam.</li><li><b>✓</b> Xavfsiz fayl — virus va keraksiz dasturlardan toza.</li><li><b>✓</b> O'zbek tilida yordam — savollaringga tez javob olasan.</li></ol>
+    </div>
+  </div>
+</section>
+
+
+
+<section class="section faq" id="faq">
+  <div class="eyebrow">? FAQ</div><h2>Tez-tez so'raladigan</h2>
+  <details open><summary>UZUM CLIENT qanday o'rnatiladi?</summary><p>1) Obuna sotib ol. 2) Mod faylni <code class="ip">mods</code> papkasiga tashla. 3) Fabric 1.21.4 bilan kir. 4) Xohlagan serverda o'yna!</p></details>
+  <details><summary>Obuna nima beradi?</summary><p>Obunasiz yuklash ochilmaydi. Xohlagan bitta obuna (Oylik / Yillik / Doimiy) kifoya — mod fayl va yangilanishlar ochiladi.</p></details>
+  <details><summary>Qaysi versiyalarni qo'llaydi?</summary><p><b>1.21.4</b> — faqat shu versiya qo'llanadi. Boshqa versiyalar yo'q.</p></details>
+  <details><summary>Bu ban bera oladimi?</summary><p>Client faqat vizual va optimizatsiya modlaridan iborat. Har qanday server qoidalarini o'zing tekshirib o'yna.</p></details>
+  <details><summary>Register nima beradi?</summary><p>Configlarni sinxronlash va yangiliklarni birinchi olish (hozircha local demo).</p></details>
+</section>
+<footer><div style="display:flex;align-items:center;gap:10px"><img src="art/brand/uzumclient-logo.png" width="23" alt=""><b>UZUM CLIENT</b> © 2026</div><div style="display:flex;gap:14px"><a href="https://www.youtube.com/@uzumclient" target="_blank">YouTube</a><a href="#top">Yuqoriga ↑</a></div></footer>
+</div>
+
+<div class="overlay" id="authOverlay">
+  <div class="auth">
+    <button class="close-x" onclick="closeAuth()">✕</button>
+    <h3 id="authTitle">Xush kelibsan! ✦</h3>
+    <p class="sub2">Uzum Client olamiga kirish uchun hisob yarat yoki kir.</p>
+    <div class="tabs"><button id="tabLogin" onclick="switchTab('login')">Kirish</button><button id="tabReg" onclick="switchTab('register')">Register</button></div>
+    <div class="err" id="authErr"></div>
+    <div id="loginForm">
+      <div class="field"><label>NICK YOKI EMAIL</label><input id="liUser" placeholder="Masalan: Herobrine_uz"></div>
+      <div class="field"><label>PAROL</label><input id="liPass" type="password" placeholder="••••••••"></div>
+      <button class="btn btn-pink" onclick="doLogin()">Kirish →</button>
+    </div>
+    <div id="regForm" style="display:none">
+      <div class="field"><label>MINECRAFT NICK (3-16: A-Z, 0-9, _)</label><input id="rgNick" placeholder="Masalan: Steve_uz" maxlength="16"></div>
+      <div class="field"><label>REAL EMAIL</label><input id="rgMail" type="email" placeholder="you@gmail.com"></div>
+      <div class="field"><label>PAROL (kamida 6 belgi)</label><input id="rgPass" type="password" placeholder="Kamida 6 belgi"></div>
+      <button class="btn btn-pink" onclick="doRegister()">Register ✦</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="imgBox">
+  <div style="position:relative;max-width:92vw">
+    <img id="imgBoxPic" style="max-width:92vw;max-height:86vh;border-radius:18px;border:2px solid var(--pink);box-shadow:0 30px 100px rgba(168,85,247,.4)" alt="Chek">
+    <button class="close-x" style="position:absolute;top:-16px;right:-16px" onclick="closeReceipt()">✕</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
+function getPlansAll(){try{return JSON.parse(localStorage.getItem('uzumclient_plans')||'{}')}catch{return{}}}
+function savePlansAll(p){localStorage.setItem('uzumclient_plans',JSON.stringify(p))}
+function getPlan(){const s=localStorage.getItem('uzumclient_session');if(!s)return null;const p=getPlansAll()[s.toLowerCase()];if(!p)return null;if(p.exp&&p.exp<Date.now()){const a=getPlansAll();delete a[s.toLowerCase()];savePlansAll(a);return null}return p}
+function setPlan(nick,plan){const a=getPlansAll();a[nick.toLowerCase()]=plan;savePlansAll(a)}
+function planDaysLeft(p){return Math.max(0,Math.ceil((p.exp-Date.now())/864e5))}
+function planStatus(){const p=getPlan();if(!p)return{has:false,detail:''};if(!p.exp)return{has:true,detail:'Cheksiz ✓'};return{has:true,detail:planDaysLeft(p)+' kun qoldi ('+new Date(p.exp).toLocaleDateString('uz-UZ')+')'}}
+function genHwid(){const h=()=>Math.floor(Math.random()*65536).toString(16).toUpperCase().padStart(4,'0');return 'UC-'+h()+'-'+h()+'-'+h()}
+function buyPlan(name){location.href='obuna.html';}
+function paintPlan(){
+ const p=getPlan(),st=planStatus(),el=document.getElementById('planNote');
+ if(el)el.textContent=st.has?('Faol obunang: '+p.name+' • '+st.detail+' — mod yuklash ochiq.'):'Hozircha obunang yo‘q — yuklash obunadan keyin ochiladi.';
+}
+function downloadClient(){
+ const s=localStorage.getItem('uzumclient_session');
+ if(!s){toast('Avval Register / Kirish qil!');openAuth('register');return}
+ const p=getPlan();
+ if(!p){toast('Avval obuna sotib ol!');location.href='obuna.html';return}
+ toast('UZUM CLIENT v2.5 ('+p.name+') yuklanmoqda... (demo)');
+}
+// AUTH (localStorage demo)
+let mode='login';
+
+function openAuth(m){mode=m||'login';document.getElementById('authOverlay').classList.add('show');switchTab(mode)}
+function closeAuth(){document.getElementById('authOverlay').classList.remove('show')}
+document.getElementById('imgBox').addEventListener('click',e=>{if(e.target.id==='imgBox')closeReceipt()});
+document.getElementById('authOverlay').addEventListener('click',e=>{if(e.target.id==='authOverlay')closeAuth()});
+function switchTab(m){mode=m;
+ document.getElementById('tabLogin').classList.toggle('active',m==='login');
+ document.getElementById('tabReg').classList.toggle('active',m==='register');
+ document.getElementById('loginForm').style.display=m==='login'?'block':'none';
+ document.getElementById('regForm').style.display=m==='register'?'block':'none';
+ document.getElementById('authTitle').textContent=m==='login'?'Qaytganingdan xursandmiz!':'Xush kelibsan! ✦';
+ hideErr()}
+function showErr(m){const e=document.getElementById('authErr');e.textContent=m;e.classList.add('show')}
+function hideErr(){document.getElementById('authErr').classList.remove('show')}
+function hashPass(s){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<s.length;i++){const ch=s.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 'h$'+(4294967296*(2097151&h2)+(h1>>>0)).toString(16)}
+function isValidEmail(m){return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(m)}
+function isValidNick(n){return /^[A-Za-z0-9_]{3,16}$/.test(n)}
+function getUsers(){try{return JSON.parse(localStorage.getItem('uzumclient_users')||'{}')}catch{return{}}}
+function saveUsers(u){localStorage.setItem('uzumclient_users',JSON.stringify(u))}
+// Admin akkauntini birinchi ochilishda tayyorlab qo'yamiz
+(function seedAdmin(){try{const u=getUsers();if(!u['muxammaddin']){u['muxammaddin']={nick:'Muxammaddin',mail:'muxammaddintairov01@gmail.com',pass:hashPass('Muxa19091986'),ts:Date.now()};saveUsers(u)}}catch(e){}})();
+function doRegister(){
+ const nick=document.getElementById('rgNick').value.trim(),mail=document.getElementById('rgMail').value.trim().toLowerCase(),pass=document.getElementById('rgPass').value;
+ if(!isValidNick(nick))return showErr('Username 3-16 belgi: faqat lotin harflar, raqam va _ . Probel va boshqa belgilar mumkin emas.');
+ if(!isValidEmail(mail))return showErr('Real email kiriting. Masalan: name@gmail.com');
+ if(pass.length<6)return showErr('Parol kamida 6 belgi bo‘lsin.');
+ const u=getUsers(); const key=nick.toLowerCase();
+ if(u[key])return showErr('Bu username band! Kirish qilib ko‘ring.');
+ for(const k in u){if((u[k].mail||'').toLowerCase()===mail)return showErr('Bu email band! Kirish qilib ko‘ring.');}
+ u[key]={nick,mail,pass:hashPass(pass),ts:Date.now(),ava:''};saveUsers(u);setSession(nick);closeAuth();toast('Tabriklaymiz, '+nick+'! ✓');paintUser();
+}
+function doLogin(){
+ const id=document.getElementById('liUser').value.trim(),pass=document.getElementById('liPass').value;
+ if(!id||!pass)return showErr('Username/email va parolni kiriting.');
+ if(id.includes('@')&&!isValidEmail(id.toLowerCase()))return showErr('Email formati noto‘g‘ri.');
+ const u=getUsers();let f=u[id.toLowerCase()];
+ if(!f){for(const k in u){if((u[k].mail||'').toLowerCase()===id.toLowerCase())f=u[k]}}
+ if(!f)return showErr('Bunday hisob topilmadi. Register qiling.');
+ if(f.blocked)return showErr('Bu hisob bloklangan. Admin bilan bog‘laning.');
+ const ok=f.pass===hashPass(pass)||f.pass===pass;
+ if(!ok)return showErr('Parol xato.');
+ if(f.pass===pass){f.pass=hashPass(pass);saveUsers(u)}
+ setSession(f.nick);closeAuth();toast('Xush kelibsan, '+f.nick+'!');paintUser();
+}
+function setSession(n){localStorage.setItem('uzumclient_session',n)}
+function logout(){localStorage.removeItem('uzumclient_session');closeProfile();paintUser();toast('Chiqdingiz.')}
+function curUser(){const s=localStorage.getItem('uzumclient_session');if(!s)return null;return getUsers()[s.toLowerCase()]||null}
+function openProfile(){if(!curUser()){openAuth('login');return}showProfile()}
+function closeProfile(){if(typeof profileView!=='undefined'&&profileView.style.display==='block')showMain()}
+function paintProfile(){
+ const u=curUser();if(!u)return;
+ document.getElementById('pfNick').textContent=u.nick;
+ document.getElementById('pfMail').textContent=u.mail;
+ const pi=document.getElementById('pfAvatarImg'),pl=document.getElementById('pfAvatarLetter');
+ if(u.ava){pi.src=u.ava;pi.style.display='block';pl.style.display='none'}else{pi.style.display='none';pl.style.display='grid';pl.textContent=u.nick[0].toUpperCase()}
+ const st=planStatus();
+ const pill=document.getElementById('planPill');pill.textContent=st.has?'Obuna bor ✓':'Obuna yo‘q';pill.className='pill '+(st.has?'ok':'no');
+ document.getElementById('planDesc').textContent=st.has?('Obuna faol • '+st.detail+'. Almashtirish uchun Obuna sahifasiga o‘t.'):'Obuna yo‘q. Mod yuklash uchun Obuna sahifasidan obuna ol.';
+ document.getElementById('hwidLine').textContent='HWID: '+(u.hwid||'—');
+}
+const PF_PROMOS={UZUMVIP:{days:30,name:'30 kunlik'}};
+function getPfPromos(){try{return JSON.parse(localStorage.getItem('uzumclient_promos')||'{}')}catch(e){return{}}}
+function applyPfPromo(){
+ const u=curUser();if(!u)return;
+ const code=document.getElementById('pfPromoInput').value.trim().toUpperCase();
+ const err=document.getElementById('pfPromoErr'),ok=document.getElementById('pfPromoOk');
+ err.classList.remove('show');ok.style.display='none';
+ const pr=PF_PROMOS[code];
+ if(!pr){err.textContent='Bunday promocode yo‘q.';err.classList.add('show');return}
+ const all=getPfPromos(),key=u.nick.toLowerCase(),used=all[key]||[];
+ if(used.includes(code)){err.textContent='Bu promocode ishlatilgan.';err.classList.add('show');return}
+ used.push(code);all[key]=used;localStorage.setItem('uzumclient_promos',JSON.stringify(all));
+ setPlan(key,{name:pr.name+' (promo)',ts:Date.now(),exp:Date.now()+pr.days*864e5});
+ const users=getUsers();if(!users[key].hwid){users[key].hwid=genHwid();saveUsers(users)}
+ const os=getOrders();os.push({id:'UC'+Date.now().toString(36).toUpperCase(),nick:u.nick,mail:u.mail||'',plan:pr.name+' (promo)',price:'0 (promo)',card:'-',ts:Date.now(),receipt:'',status:'approved'});
+ saveOrders(os);paintPlan();paintProfile();
+ ok.textContent='✓ 30 kunlik obuna faollashdi!';ok.style.display='block';toast('Promocode qabul qilindi ✓');
+}
+function saveAva(dataURL){const u=curUser();if(!u)return;const users=getUsers();users[u.nick.toLowerCase()].ava=dataURL;saveUsers(users);paintProfile();paintUser();toast('Profil rasmi yangilandi ✓')}
+function handleAvaFile(f){if(!f)return;if(!f.type||!f.type.startsWith('image/'))return toast('Rasm fayl tanla.');if(f.size>600*1024)return toast('Rasm 600KB dan kichik bo‘lsin.');const r=new FileReader();r.onload=()=>saveAva(r.result);r.readAsDataURL(f)}
+document.getElementById('pfAva').addEventListener('change',e=>handleAvaFile(e.target.files[0]));
+document.getElementById('pfAvaWrap').addEventListener('click',()=>document.getElementById('pfAva').click());
+function downloadMod(){
+ const p=getPlan();
+ if(!p){toast('Avval obuna sotib ol!');location.href='obuna.html';return}
+ toast('UZUM CLIENT mod ('+p.name+') yuklanmoqda... (demo)');
+}
+function licenseKey(nick,hwid,exp){const h=hashPass(nick+'|'+hwid+'|'+exp).replace('h$','').toUpperCase();const s=(h+'000000000000').slice(0,12);return 'UC-'+s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8,12)}
+function downloadConfig(){
+ const u=curUser();if(!u)return;
+ const p=getPlan(),hw=u.hwid||'UNBOUND',ex=p?(p.exp||0):0;
+ const cfg={client:'UZUM CLIENT',version:'2.5',minecraft:'1.21.4',loader:'fabric',user:u.nick,fpsBoost:true,overlays:['combo','keystrokes','reach','fps'],hud:{theme:'uzum-dark'},license:{key:licenseKey(u.nick,hw,ex),hwid:hw,plan:p?p.name:'yo‘q',expires:p?(p.exp?new Date(p.exp).toISOString():'lifetime'):'yo‘q',active:!!p,note:'Mod shu kalit bilan HWID ni tekshiradi'}};
+ const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='uzumclient-config.json';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+ toast('Config yuklab olindi ✓');
+}
+function changePass(){
+ const u=curUser();if(!u)return;
+ const o=document.getElementById('oldPass').value,n=document.getElementById('newPass').value;
+ const err=document.getElementById('passErr');err.classList.remove('show');
+ if(u.pass!==hashPass(o)&&u.pass!==o){err.textContent='Hozirgi parol noto‘g‘ri.';err.classList.add('show');return}
+ if(n.length<6){err.textContent='Yangi parol kamida 6 belgi bo‘lsin.';err.classList.add('show');return}
+ const users=getUsers();users[u.nick.toLowerCase()].pass=hashPass(n);saveUsers(users);
+ document.getElementById('oldPass').value='';document.getElementById('newPass').value='';
+ toast('Parol almashtirildi ✓');
+}
+function paintUser(){
+ const s=localStorage.getItem('uzumclient_session');
+ const g=document.getElementById('guestBtns'),c=document.getElementById('userChip'),l=document.getElementById('logoutBtn');
+ if(s){g.style.display='none';c.style.display='flex';l.style.display='inline-flex';const lu=getUsers()[s.toLowerCase()];const L=s[0].toUpperCase();const av=document.getElementById('userAvatar'),ai=document.getElementById('userAvatarImg');if(lu&&lu.ava){ai.src=lu.ava;ai.style.display='block';av.style.display='none'}else{ai.style.display='none';av.style.display='grid';av.textContent=L}}
+ else{g.style.display='flex';c.style.display='none';l.style.display='none'}
+ document.getElementById('adminLink').style.display=(s&&s.toLowerCase()==='muxammaddin')?'':'none';
+}
+paintUser();paintPlan();
+if(location.hash==='#login'){history.replaceState(null,'',location.pathname);openAuth('login')}
+// OBUNA VIEW — alohida sahifa hissi, reloadsiz (navbar o'zgarmaydi)
+const profileView=document.getElementById('profileView');
+const adminView=document.getElementById('adminView');
+function hideSections(){document.querySelectorAll('.wrap > section, .wrap > footer').forEach(e=>e.style.display='none')}
+function showSections(){document.querySelectorAll('.wrap > section, .wrap > footer').forEach(e=>e.style.display='')}
+function navOn(h){document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')===h))}
+function revealIn(root){(root||document).querySelectorAll('.rv:not(.in)').forEach(e=>e.classList.add('in'))}
+function showProfile(){paintProfile();hideSections();adminView.style.display='none';profileView.style.display='block';window.scrollTo(0,0);revealIn(profileView);navOn(null)}
+function showMain(){profileView.style.display='none';adminView.style.display='none';showSections();navOn(null)}
+function isAdmin(){const u=curUser();return !!(u&&u.nick.toLowerCase()==='muxammaddin')}
+function needAdmin(){if(isAdmin())return true;toast('Admin huquqi kerak.');return false}
+function showAdmin(){if(!curUser()){openAuth('login');return}if(!needAdmin())return;renderAdmin();renderOrders();hideSections();profileView.style.display='none';adminView.style.display='block';window.scrollTo(0,0);revealIn(adminView);navOn('#admin')}
+function planInfoOf(nick){const pl=getPlansAll()[nick.toLowerCase()];if(!pl)return{has:false};if(pl.exp&&pl.exp<Date.now())return{has:false,expired:true};if(!pl.exp)return{has:true,text:pl.name+' • Cheksiz'};return{has:true,text:pl.name+' • '+Math.max(0,Math.ceil((pl.exp-Date.now())/864e5))+' kun qoldi',until:new Date(pl.exp).toLocaleDateString('uz-UZ')}}
+function renderAdmin(){
+ if(!needAdmin())return;
+ const users=getUsers(),tb=document.getElementById('adminRows');
+ tb.innerHTML=Object.keys(users).sort().map(k=>{const u=users[k],pi=planInfoOf(k);
+  const st=u.blocked?'<span class="pill bad">Bloklangan</span>':(pi.has?'<span class="pill ok">Faol</span>':'<span class="pill no">Faol emas</span>');
+  return '<tr><td><b>'+u.nick+'</b></td><td>'+u.mail+'</td><td>'+(pi.has?pi.text:'—')+'</td><td>'+(pi.until||'—')+'</td><td><code class="ip">'+(u.hwid||'—')+'</code></td><td>'+st+'</td>'+
+  '<td><div class="abtns"><button onclick="adminRemovePlan(\''+k+'\')">Obunani olish</button><button onclick="adminResetHwid(\''+k+'\')">HWID</button><button onclick="adminRestart(\''+k+'\')">Restart</button><button class="danger" onclick="adminBlock(\''+k+'\')">'+(u.blocked?'Unblock':'Block')+'</button></div></td></tr>'}).join('')||'<tr><td colspan="7">Foydalanuvchi yo‘q.</td></tr>';
+}
+function getOrders(){try{return JSON.parse(localStorage.getItem('uzumclient_orders')||'[]')}catch{return[]}}
+function saveOrders(o){localStorage.setItem('uzumclient_orders',JSON.stringify(o))}
+function planDays(pname){return pname==='30 kunlik'?30:pname==='90 kunlik'?90:0}
+function renderOrders(){
+ const tb=document.getElementById('orderRows');if(!tb)return;
+ const os=getOrders().slice().reverse();
+ tb.innerHTML=os.map(o=>'<tr><td>'+o.id+'</td><td><b>'+o.nick+'</b></td><td>'+o.plan+' • '+o.price+'</td><td>'+(o.card||'—')+'</td><td>'+(o.receipt?'<img src="'+o.receipt+'" title="Kattalashtirish uchun bosing" style="width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--pink);cursor:zoom-in" onclick="openReceipt(this.src)">':'—')+'</td><td>'+(o.status==='pending'?'<span class="pill no">Kutilmoqda</span>':o.status==='approved'?'<span class="pill ok">Tasdiqlandi</span>':'<span class="pill bad">Rad etildi</span>')+'</td>'+
+ '<td>'+(o.status==='pending'?'<div class="abtns"><button onclick="approveOrder(\''+o.id+'\')">Tasdiqlash</button><button class="danger" onclick="rejectOrder(\''+o.id+'\')">Rad etish</button></div>':'—')+'</td></tr>').join('')||'<tr><td colspan="7">So‘rov yo‘q.</td></tr>';
+}
+function approveOrder(id){
+ if(!needAdmin())return;
+ const os=getOrders(),o=os.find(x=>x.id===id);if(!o)return;
+ const d=planDays(o.plan);
+ setPlan(o.nick,{name:o.plan,ts:Date.now(),exp:d?Date.now()+d*864e5:null});
+ const users=getUsers(),ku=o.nick.toLowerCase();
+ if(users[ku]&&!users[ku].hwid){users[ku].hwid=genHwid();saveUsers(users)}
+ o.status='approved';saveOrders(os);renderOrders();renderAdmin();toast(o.nick+': obuna tasdiqlandi ✓');
+}
+function rejectOrder(id){
+ if(!needAdmin())return;
+ const os=getOrders(),o=os.find(x=>x.id===id);if(!o)return;
+ o.status='rejected';saveOrders(os);renderOrders();renderAdmin();toast(id+': rad etildi.');
+}
+function openReceipt(src){document.getElementById('imgBoxPic').src=src;document.getElementById('imgBox').classList.add('show')}
+function closeReceipt(){const o=document.getElementById('imgBox');if(o)o.classList.remove('show')}
+function adminGive(){
+ if(!needAdmin())return;
+ const nick=document.getElementById('adminGiveNick').value.trim().toLowerCase();
+ const pname=document.getElementById('adminGivePlan').value;
+ const users=getUsers();
+ if(!users[nick])return toast('Bunday nick topilmadi.');
+ const days=pname==='30 kunlik'?30:pname==='90 kunlik'?90:0;
+ setPlan(nick,{name:pname,ts:Date.now(),exp:days?Date.now()+days*864e5:null});
+ if(!users[nick].hwid){users[nick].hwid=genHwid();saveUsers(users)}
+ renderAdmin();toast(nick+' ga '+pname+' berildi ✓');
+}
+function adminRemovePlan(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);renderAdmin();if((localStorage.getItem('uzumclient_session')||'').toLowerCase()===nick)paintPlan();toast(nick+': obuna olib tashlandi.')}
+function adminResetHwid(nick){if(!needAdmin())return;const users=getUsers();if(!users[nick.toLowerCase()])return;users[nick.toLowerCase()].hwid=genHwid();saveUsers(users);renderAdmin();toast(nick+': yangi HWID berildi.')}
+function adminRestart(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);const users=getUsers();if(users[nick.toLowerCase()]){users[nick.toLowerCase()].hwid='';saveUsers(users)}renderAdmin();toast(nick+': akkaunt restart qilindi (obuna+HWID tozalandi).')}
+function adminBlock(nick){
+ if(!needAdmin())return;
+ if(nick.toLowerCase()==='muxammaddin')return toast('O‘zingni bloklay olmaysan.');
+ const users=getUsers();if(!users[nick.toLowerCase()])return;
+ users[nick.toLowerCase()].blocked=!users[nick.toLowerCase()].blocked;saveUsers(users);renderAdmin();
+ toast(nick+(users[nick.toLowerCase()].blocked?': bloklandi.':': blokdan chiqarildi.'));
+}
+document.querySelectorAll('a[href^="#"]').forEach(a=>{const h=a.getAttribute('href');if(false){}else if(h==='#admin'){a.addEventListener('click',e=>{e.preventDefault();showAdmin()})}else if(h&&h!=='#login'){a.addEventListener('click',()=>{if(profileView.style.display==='block'||adminView.style.display==='block')showMain()})}});
+if(location.hash==='#profil'){openProfile()}
+if(curUser()&&curUser().blocked){localStorage.removeItem('uzumclient_session');paintUser()}
+// Reveal-on-scroll animatsiyalar (hamma bo'limda)
+try{
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.mode,.card,.faq details,.pf-cards .pcard,.hero-left > *,h1,h2,.stats .stat').forEach((elm,i)=>{elm.classList.add('rv');elm.setAttribute('data-d',String(i%3));io.observe(elm)});
+}catch(e){}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeReceipt();closeAuth();closeProfile();if(typeof adminView!=='undefined'&&adminView.style.display==='block')showMain()}});
+</script>
+</body>
+</html>
