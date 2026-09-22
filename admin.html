@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UZUM CLIENT — Admin panel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#08080c;color:#f5f3f7;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;padding:24px}
+h1{font-size:24px;margin-bottom:4px}
+.sub{color:#a7a3b8;font-size:13px;margin-bottom:18px}
+.card{background:#14141de0;border:1px solid #262633;border-radius:14px;padding:16px;margin-bottom:14px;max-width:1080px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+input,select{background:#ffffff0d;border:1px solid #ffffff22;color:#fff;border-radius:10px;padding:10px 12px;font-size:14px}
+input{flex:1;min-width:140px}
+button{background:#a855f7;border:none;color:#fff;border-radius:10px;padding:10px 16px;font-size:14px;cursor:pointer;font-weight:700}
+button:hover{filter:brightness(1.1)}
+button.ghost{background:#ffffff14}
+button.red{background:#a13b3b}
+button.green{background:#2e7d46}
+button.sm{padding:6px 10px;font-size:12px}
+button:disabled{opacity:.5}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;max-width:1080px}
+.tabs button{background:#1c1c28;border:1px solid #262633}
+.tabs button.on{background:#a855f7;border-color:#a855f7}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #ffffff12;vertical-align:top}
+th{color:#a7a3b8;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.meta{font-size:13px;color:#ffffffbd;line-height:1.7}
+.meta b{color:#fff}
+.st{font-weight:700}
+.st.pending{color:#ffcf5c}.st.approved,.st.ok{color:#5cff8a}.st.rejected,.st.bad{color:#ff5c5c}
+.err{color:#ff5c5c;margin:10px 0}
+img.check{max-width:100%;border-radius:10px;margin:10px 0;display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px;max-width:1080px}
+.stat{background:#14141d;border:1px solid #262633;border-radius:14px;padding:16px}
+.stat .n{font-size:28px;font-weight:900}
+.stat .t{color:#a7a3b8;font-size:13px}
+code.key{background:#0d0d14;border:1px solid #a855f7;border-radius:8px;padding:4px 8px;font-size:13px;cursor:pointer}
+.small{font-size:12px;color:#a7a3b8}
+</style>
+</head>
+<body>
+<h1>UZUM CLIENT — Admin panel</h1>
+<div class="sub">Obuna • kalitlar • to'lovlar • promokodlar • kuzatuv — hammesi shu yerda</div>
+
+<div class="card" id="loginBox">
+<div class="row"><input id="email" type="email" placeholder="Admin email" /><input id="pass" type="password" placeholder="Parol" /></div>
+<button id="loginBtn">Kirish</button>
+<div class="err" id="loginErr"></div>
+</div>
+
+<div id="panel" style="display:none">
+<div class="tabs" id="tabs"></div>
+<div id="content"></div>
+</div>
+
+<script>
+var H="https://zuezpltfsjhoqqkcthmh.supabase.co";
+var K="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1ZXpwbHRmc2pob3Fxa2N0aG1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODcyMzUsImV4cCI6MjEwNTY2MzIzNX0.8DkGlhJpdyz7p2twBxJUs-n8zU5eBlM9M_36NYKx_D8";
+var TOK="";
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+async function api(p,o){
+  o=o||{};
+  o.headers=Object.assign({apikey:K},o.headers||{});
+  if(TOK)o.headers.Authorization="Bearer "+TOK;
+  var r=await fetch(H+p,o);
+  var ct=r.headers.get("content-type")||"";
+  var b=ct.indexOf("application/json")>=0?await r.json():await r.text();
+  if(!r.ok)throw new Error((b&&b.message)||("Xato "+r.status));
+  return b;
+}
+function fmtDT(s){if(!s)return"—";try{return new Date(s).toLocaleString("uz-UZ")}catch(e){return s}}
+function shortHwid(h){if(!h)return"—";return esc(String(h).slice(0,10))+"…"}
+function genKey(){
+  var a="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",s="UZUM",i,j;
+  for(i=0;i<3;i++){s+="-";for(j=0;j<4;j++)s+=a[Math.floor(Math.random()*a.length)]}
+  return s;
+}
+function subPlus(iso,days){
+  var base=new Date();
+  if(iso){var d=new Date(iso);if(!isNaN(d)&&d>base)base=d}
+  return new Date(base.getTime()+days*864e5).toISOString();
+}
+
+var TABS=[["stats","Statistika"],["users","Foydalanuvchilar"],["keys","Kalitlar"],["pays","To'lovlar"],["promo","Promokodlar"],["watch","Kuzatuv"],["meta","Sozlamalar"]];
+var cur="stats";
+function renderTabs(){
+  var t=document.getElementById("tabs");t.innerHTML="";
+  TABS.forEach(function(x){
+    var b=document.createElement("button");
+    b.textContent=x[1];if(x[0]===cur)b.className="on";
+    b.onclick=function(){cur=x[0];renderTabs();load()};
+    t.appendChild(b);
+  });
+}
+function load(){
+  var c=document.getElementById("content");
+  c.innerHTML='<div class="card">Yuklanmoqda…</div>';
+  ({stats:loadStats,users:loadUsers,keys:loadKeys,pays:loadPays,promo:loadPromo,watch:loadWatch,meta:loadMeta}[cur])(c)
+    .catch(function(e){c.innerHTML='<div class="card err">'+esc(e.message)+'</div>'});
+}
+
+/* ---------- STATISTIKA ---------- */
+async function loadStats(c){
+  var users=await api("/rest/v1/profiles?select=id,sub_until,banned_hwid");
+  var pays=await api("/rest/v1/payments?select=id,status");
+  var keys=await api("/rest/v1/sub_keys?select=id,used");
+  var fails=await api("/rest/v1/mod_attempts?select=id&ok=eq.false&created_at=gt."+encodeURIComponent(new Date(Date.now()-864e5).toISOString()));
+  var now=new Date(),act=0,ban=0;
+  users.forEach(function(u){if(u.sub_until&&new Date(u.sub_until)>now)act++;if(u.banned_hwid)ban++});
+  var pend=pays.filter(function(p){return p.status==="pending"}).length;
+  var free=keys.filter(function(k){return !k.used}).length;
+  c.innerHTML='<div class="grid">'+
+    stat(users.length,"Jami userlar")+stat(act,"Faol obuna")+stat(ban,"Banlangan")+
+    stat(pend,"Kutilayotgan to'lov")+stat(free,"Bo'sh kalit")+stat(fails.length,"24s fail urinish")+'</div>';
+  function stat(n,t){return '<div class="stat"><div class="n">'+n+'</div><div class="t">'+t+'</div></div>'}
+}
+
+/* ---------- FOYDALANUVCHILAR ---------- */
+async function loadUsers(c){
+  var q=(document.getElementById("uq")||{}).value||"";
+  var users=await api("/rest/v1/profiles?select=id,username,email,role,sub_until,hwid,banned_hwid,created_at&order=created_at.desc&limit=200");
+  if(q){q=q.toLowerCase();users=users.filter(function(u){return(username(u)+" "+u.email).toLowerCase().indexOf(q)>=0})}
+  function username(u){return u.username||""}
+  var h='<div class="card"><div class="row"><input id="uq" placeholder="Qidirish: username/email" value="'+esc((document.getElementById("uq")||{}).value||"")+'"><button class="ghost" id="usearch">Qidirish</button></div>';
+  h+='<table><tr><th>User</th><th>Obuna</th><th>HWID</th><th>Amal</th></tr>';
+  users.forEach(function(u){
+    var sub=u.sub_until&&new Date(u.sub_until)>new Date()?'<span class="st ok">'+fmtDT(u.sub_until)+'</span>':'<span class="st bad">'+(u.sub_until?fmtDT(u.sub_until):"yo'q")+'</span>';
+    if(u.banned_hwid)sub+=' <span class="st bad">[BAN]</span>';
+    h+='<tr><td><b>'+esc(username(u))+'</b><br><span class="small">'+esc(u.email)+'</span><br><span class="small">'+esc(u.role)+'</span></td>'+
+      '<td>'+sub+'</td><td class="small">'+shortHwid(u.hwid)+'</td><td>'+
+      '<div class="row"><button class="sm" data-a="d30" data-id="'+u.id+'" data-s="'+esc(u.sub_until||"")+'">+30</button>'+
+      '<button class="sm" data-a="d90" data-id="'+u.id+'" data-s="'+esc(u.sub_until||"")+'">+90</button>'+
+      '<button class="sm" data-a="inf" data-id="'+u.id+'" data-s="'+esc(u.sub_until||"")+'">∞</button>'+
+      '<button class="sm ghost" data-a="hwid" data-id="'+u.id+'">HWID reset</button>'+
+      '<button class="sm '+(u.banned_hwid?"green":"red")+'" data-a="ban" data-id="'+u.id+'" data-b="'+(u.banned_hwid?1:0)+'">'+(u.banned_hwid?"Unban":"Ban")+'</button></div></td></tr>';
+  });
+  c.innerHTML=h+'</table></div>';
+  document.getElementById("usearch").onclick=loadUsers.bind(null,c);
+  c.querySelectorAll("button[data-a]").forEach(function(b){
+    b.onclick=function(){
+      var id=b.getAttribute("data-id"),a=b.getAttribute("data-a");
+      var done=function(){load()};
+      if(a==="d30"||a==="d90"||a==="inf"){
+        var days=a==="d30"?30:a==="d90"?90:36500;
+        if(!confirm(days+" kun obuna berilsinmi?"))return;
+        api("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({sub_until:subPlus(b.getAttribute("data-s"),days)})}).then(done).catch(alert2);
+      }else if(a==="hwid"){
+        if(!confirm("HWID bog'lanishi o'chirilsinmi?"))return;
+        api("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({hwid:null})}).then(done).catch(alert2);
+      }else if(a==="ban"){
+        var ban=b.getAttribute("data-b")!=="1";
+        if(!confirm(ban?"Banlansinmi?":"Ban ochilsinmi?"))return;
+        api("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({banned_hwid:ban})}).then(done).catch(alert2);
+      }
+    };
+  });
+  function alert2(e){alert(e.message)}
+}
+
+/* ---------- KALITLAR ---------- */
+async function loadKeys(c){
+  var sk=await api("/rest/v1/sub_keys?select=*&order=id.desc&limit=100");
+  var hk=await api("/rest/v1/hwid_keys?select=*&order=id.desc&limit=100");
+  var h='<div class="card"><h3>Obuna kalitlari</h3><div class="row"><input id="kdays" type="number" value="30" style="max-width:120px"><button id="knew">Yaratish</button></div><table><tr><th>Kalit</th><th>Kun</th><th>Holat</th><th></th></tr>';
+  sk.forEach(function(k){
+    h+='<tr><td><code class="key" data-k="'+esc(k.value)+'">'+esc(k.value)+'</code></td><td>'+k.days+'</td>'+
+      '<td>'+(k.used?'<span class="st bad">ishlatilgan</span>':'<span class="st ok">bo\'sh</span>')+'</td>'+
+      '<td><button class="sm red" data-t="sub_keys" data-id="'+k.id+'">O\'chirish</button></td></tr>';
+  });
+  h+='</table></div><div class="card"><h3>HWID tiklash kalitlari</h3><div class="row"><button id="hnew">Yaratish</button></div><table><tr><th>Kalit</th><th>Holat</th><th></th></tr>';
+  hk.forEach(function(k){
+    h+='<tr><td><code class="key" data-k="'+esc(k.value)+'">'+esc(k.value)+'</code></td>'+
+      '<td>'+(k.used?'<span class="st bad">ishlatilgan</span>':'<span class="st ok">bo\'sh</span>')+'</td>'+
+      '<td><button class="sm red" data-t="hwid_keys" data-id="'+k.id+'">O\'chirish</button></td></tr>';
+  });
+  c.innerHTML=h+'</table></div>';
+  c.querySelectorAll("code.key").forEach(function(el){el.onclick=function(){try{navigator.clipboard.writeText(el.getAttribute("data-k"))}catch(e){}}});
+  document.getElementById("knew").onclick=function(){
+    var d=parseInt(document.getElementById("kdays").value||"30",10)||30;
+    api("/rest/v1/sub_keys",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=representation"},body:JSON.stringify({value:genKey(),days:d})}).then(load).catch(function(e){alert(e.message)});
+  };
+  document.getElementById("hnew").onclick=function(){
+    api("/rest/v1/hwid_keys",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=representation"},body:JSON.stringify({value:genKey()})}).then(load).catch(function(e){alert(e.message)});
+  };
+  c.querySelectorAll("button[data-t]").forEach(function(b){
+    b.onclick=function(){if(!confirm("Kalit o'chirilsinmi?"))return;
+      api("/rest/v1/"+b.getAttribute("data-t")+"?id=eq."+b.getAttribute("data-id"),{method:"DELETE"}).then(load).catch(function(e){alert(e.message)});};
+  });
+}
+
+/* ---------- TO'LOVLAR ---------- */
+var ST={pending:"Kutilmoqda",approved:"Tasdiqlangan",rejected:"Rad etilgan"};
+async function loadPays(c){
+  var rows=await api("/rest/v1/payments?select=*,profiles(username,email)&order=created_at.desc&limit=100");
+  var h='<div class="card"><h3>To\'lovlar ('+rows.length+')</h3>';
+  if(!rows.length)h+='<div class="meta">Hozircha to\'lovlar yo\'q.</div>';
+  rows.forEach(function(p,i){
+    var u=(p.profiles&&p.profiles.username)||p.user_id;
+    h+='<div class="card"><div class="meta"><b>#'+p.id+'</b> <span class="st '+p.status+'">'+ST[p.status]+'</span><br>'+
+      'User: <b>'+esc(u)+'</b> ('+esc((p.profiles&&p.profiles.email)||"")+')<br>'+
+      'Plan: <b>'+esc(p.plan)+'</b> | Summa: <b>'+esc(p.amount)+'</b><br>'+
+      '<span class="small">'+esc(p.created_at)+'</span></div>'+
+      '<div class="row"><button class="sm ghost" data-v="'+i+'">Chekni ko\'rish</button>'+
+      (p.status==="pending"?'<button class="sm green" data-o="'+p.id+'">Tasdiqlash</button><button class="sm ghost" data-n="'+p.id+'">Rad etish</button>':'')+
+      '<button class="sm red" data-d="'+p.id+'">O\'chirish</button></div><div class="img" id="img'+i+'"></div></div>';
+  });
+  c.innerHTML=h+'</div>';
+  c.querySelectorAll("button[data-v]").forEach(function(b){
+    b.onclick=function(){
+      var p=rows[parseInt(b.getAttribute("data-v"),10)];
+      api("/storage/v1/object/sign/checks/"+p.check_path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({expiresIn:3600})}).then(function(r){
+        document.getElementById("img"+b.getAttribute("data-v")).innerHTML='<img class="check" src="'+H+r.signedURL+'">';
+      }).catch(function(e){alert(e.message)});
+    };
+  });
+  c.querySelectorAll("button[data-o]").forEach(function(b){
+    b.onclick=function(){if(!confirm("Tasdiqlansinmi? Obuna beriladi."))return;
+      api("/rest/v1/rpc/admin_approve_payment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({p_id:parseInt(b.getAttribute("data-o"),10)})}).then(function(m){alert(m);load()}).catch(function(e){alert(e.message)});};
+  });
+  c.querySelectorAll("button[data-n]").forEach(function(b){
+    b.onclick=function(){if(!confirm("Rad etilsinmi?"))return;
+      api("/rest/v1/payments?id=eq."+b.getAttribute("data-n"),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:"rejected"})}).then(load).catch(function(e){alert(e.message)});};
+  });
+  c.querySelectorAll("button[data-d]").forEach(function(b){
+    b.onclick=function(){if(!confirm("To'lov o'chirilsinmi?"))return;
+      api("/rest/v1/payments?id=eq."+b.getAttribute("data-d"),{method:"DELETE"}).then(load).catch(function(e){alert(e.message)});};
+  });
+}
+
+/* ---------- PROMOKODLAR ---------- */
+async function loadPromo(c){
+  var rows=await api("/rest/v1/promos?select=*&order=id.desc&limit=100");
+  var h='<div class="card"><h3>Promokodlar</h3><div class="row"><input id="pv" placeholder="Kod"><input id="pd" type="number" value="10" style="max-width:110px"><input id="po" type="number" value="100" style="max-width:110px"><button id="pnew">Yaratish</button></div><table><tr><th>Kod</th><th>Chegirma%</th><th>Limit</th><th></th></tr>';
+  rows.forEach(function(p){
+    h+='<tr><td><code class="key">'+esc(p.value)+'</code></td><td>'+p.discount+'</td><td>'+esc(p.outActive)+'</td>'+
+      '<td><button class="sm red" data-id="'+p.id+'">O\'chirish</button></td></tr>';
+  });
+  c.innerHTML=h+'</table></div>';
+  document.getElementById("pnew").onclick=function(){
+    var v=document.getElementById("pv").value.trim();
+    if(!v){alert("Kod yozing");return}
+    api("/rest/v1/promos",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=representation"},body:JSON.stringify({value:v,discount:parseInt(document.getElementById("pd").value||"0",10),outActive:parseInt(document.getElementById("po").value||"100",10)})}).then(load).catch(function(e){alert(e.message)});
+  };
+  c.querySelectorAll("button[data-id]").forEach(function(b){
+    b.onclick=function(){if(!confirm("Promokod o'chirilsinmi?"))return;
+      api("/rest/v1/promos?id=eq."+b.getAttribute("data-id"),{method:"DELETE"}).then(load).catch(function(e){alert(e.message)});};
+  });
+}
+
+/* ---------- KUZATUV ---------- */
+async function loadWatch(c){
+  var rows=await api("/rest/v1/mod_attempts?select=created_at,email,hwid,ok,reason&ok=eq.false&order=created_at.desc&limit=100");
+  var h='<div class="card"><h3>Muvaffaqiyatsiz urinishlar ('+rows.length+'/100)</h3><table><tr><th>Vaqt</th><th>Email</th><th>HWID</th><th>Sabab</th></tr>';
+  rows.forEach(function(r){
+    h+='<tr><td class="small">'+esc(r.created_at)+'</td><td>'+esc(r.email)+'</td><td class="small">'+shortHwid(r.hwid)+'</td><td>'+esc(r.reason)+'</td></tr>';
+  });
+  c.innerHTML=h+'</table><div class="small" style="margin-top:8px">Chuqur tahlil (bir email—ko\'p HWID): Supabase Dashboard → SQL Editor → schema6.sql dagi kuzatuv so\'rovlari.</div></div>';
+}
+
+/* ---------- SOZLAMALAR ---------- */
+async function loadMeta(c){
+  var m=await api("/rest/v1/meta?select=*&id=eq.1");
+  m=m[0]||{version:"",jar_sha256:""};
+  c.innerHTML='<div class="card"><h3>Reliz sozlamalari</h3>'+
+    '<div class="row"><input id="mver" value="'+esc(m.version)+'"></div>'+
+    '<div class="row"><input id="msha" placeholder="jar sha256 (bo\'sh = tekshirilmaydi)" value="'+esc(m.jar_sha256||"")+'"></div>'+
+    '<div class="row"><button id="msave">Saqlash</button></div>'+
+    '<div class="small">Mod ishga tushganda shu hash bilan o\'zini solishtiradi. Yangi jar chiqarganda hash ni yangilang.</div></div>';
+  document.getElementById("msave").onclick=function(){
+    api("/rest/v1/meta?id=eq.1",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({version:document.getElementById("mver").value,jar_sha256:document.getElementById("msha").value.trim()})}).then(function(){alert("Saqlandi")}).catch(function(e){alert(e.message)});
+  };
+}
+
+/* ---------- LOGIN ---------- */
+document.getElementById("loginBtn").onclick=function(){
+  var em=document.getElementById("email").value.trim();
+  var pw=document.getElementById("pass").value;
+  document.getElementById("loginErr").textContent="";
+  api("/auth/v1/token?grant_type=password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:em,password:pw})}).then(function(r){
+    TOK=r.access_token;
+    return api("/rest/v1/profiles?select=role");
+  }).then(function(p){
+    if(!p.length||(p[0].role!=="ADMIN"&&p[0].role!=="OWNER"))throw new Error("Admin emassiz.");
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("panel").style.display="block";
+    renderTabs();load();
+  }).catch(function(e){document.getElementById("loginErr").textContent=e.message});
+};
+</script>
+</body>
+</html>
