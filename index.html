@@ -428,7 +428,7 @@ function paintProfile(){
  document.getElementById('planDesc').textContent=st.has?('Obuna faol • '+st.detail+'. Almashtirish uchun Obuna sahifasiga o‘t.'):'Obuna yo‘q. Mod yuklash uchun Obuna sahifasidan obuna ol.';
  document.getElementById('hwidLine').textContent='HWID: '+(u.hwid||'—');
 }
-function getPromoDefs(){try{const d=JSON.parse(localStorage.getItem('uzumclient_promo_defs')||'null');if(d&&Object.keys(d).length)return d}catch(e){}const seed={UZUMVIP:{days:30,name:'30 kunlik',limit:0,used:0}};try{localStorage.setItem('uzumclient_promo_defs',JSON.stringify(seed))}catch(e){}return seed}
+function getPromoDefs(){try{const raw=localStorage.getItem('uzumclient_promo_defs');if(raw){const d=JSON.parse(raw);if(d&&typeof d==='object')return d}}catch(e){}const seed={UZUMVIP:{days:30,name:'30 kunlik',limit:0,used:0}};try{localStorage.setItem('uzumclient_promo_defs',JSON.stringify(seed))}catch(e){}return seed}
 function savePromoDefs(d){localStorage.setItem('uzumclient_promo_defs',JSON.stringify(d))}
 function getPfPromos(){try{return JSON.parse(localStorage.getItem('uzumclient_promos')||'{}')}catch(e){return{}}}
 function promoUseOk(def){return !def.limit||(def.used||0)<def.limit}
