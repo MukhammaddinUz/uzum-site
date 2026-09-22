@@ -251,12 +251,65 @@ async function loadPromo(c){
 
 /* ---------- KUZATUV ---------- */
 async function loadWatch(c){
-  var rows=await api("/rest/v1/mod_attempts?select=created_at,email,hwid,ok,reason&ok=eq.false&order=created_at.desc&limit=100");
-  var h='<div class="card"><h3>Muvaffaqiyatsiz urinishlar ('+rows.length+'/100)</h3><table><tr><th>Vaqt</th><th>Email</th><th>HWID</th><th>Sabab</th></tr>';
+  var rows=await api("/rest/v1/mod_attempts?select=created_at,email,hwid,ok,reason&order=created_at.desc&limit=500");
+  var banned=await api("/rest/v1/banned_hwids?select=*&order=created_at.desc&limit=200");
+  var isBanned={};banned.forEach(function(b){isBanned[b.hwid]=1});
+  // Guruhlash: email -> HWID lar
+  var byEmail={};
   rows.forEach(function(r){
+    if(!r.email)return;
+    var e=r.email.toLowerCase();
+    byEmail[e]=byEmail[e]||{email:r.email,hwids:{},fails:0,last:r.created_at};
+    if(r.hwid)byEmail[e].hwids[r.hwid]=1;
+    if(!r.ok)byEmail[e].fails++;
+    if(r.created_at>byEmail[e].last)byEmail[e].last=r.created_at;
+  });
+  var h='<div class="card"><h3>🚨 Gumonlilar (bir email — ko\'p HWID)</h3>';
+  var found=0;
+  Object.keys(byEmail).forEach(function(e){
+    var g=byEmail[e],hl=Object.keys(g.hwids);
+    if(hl.length<2)return;
+    found++;
+    h+='<div class="card"><div class="meta"><b>'+esc(g.email)+'</b> — '+hl.length+' ta HWID, '+g.fails+' ta fail<br><span class="small">'+esc(g.last)+'</span></div>';
+    hl.forEach(function(hw){
+      h+='<div class="row"><code class="key">'+esc(hw)+'</code>'+
+        (isBanned[hw]?'<span class="st bad">[BLOKLANGAN]</span>':'<button class="sm red" data-bh="'+esc(hw)+'" data-em="'+esc(g.email)+'">Bloklash</button>')+'</div>';
+    });
+    h+='</div>';
+  });
+  if(!found)h+='<div class="meta">Gumonli harakat yo\'q. Hammasi toza ✅</div>';
+  h+='</div>';
+  // Bloklanganlar
+  h+='<div class="card"><h3>Bloklangan HWIDlar ('+banned.length+')</h3>';
+  if(!banned.length){h+='<div class="meta">Bo\'sh.</div>'}else{
+    h+='<table><tr><th>HWID</th><th>Sabab</th><th>Vaqt</th><th></th></tr>';
+    banned.forEach(function(b){
+      h+='<tr><td><code class="key">'+esc(b.hwid)+'</code></td><td>'+esc(b.reason||"")+'</td><td class="small">'+esc(b.created_at)+'</td>'+
+        '<td><button class="sm green" data-ub="'+esc(b.hwid)+'">Ochish</button></td></tr>';
+    });
+    h+='</table>';
+  }
+  h+='</div>';
+  // So'nggi fail lar
+  var fails=rows.filter(function(r){return !r.ok}).slice(0,50);
+  h+='<div class="card"><h3>So\'nggi muvaffaqiyatsiz urinishlar</h3><table><tr><th>Vaqt</th><th>Email</th><th>HWID</th><th>Sabab</th></tr>';
+  fails.forEach(function(r){
     h+='<tr><td class="small">'+esc(r.created_at)+'</td><td>'+esc(r.email)+'</td><td class="small">'+shortHwid(r.hwid)+'</td><td>'+esc(r.reason)+'</td></tr>';
   });
-  c.innerHTML=h+'</table><div class="small" style="margin-top:8px">Chuqur tahlil (bir email—ko\'p HWID): Supabase Dashboard → SQL Editor → schema6.sql dagi kuzatuv so\'rovlari.</div></div>';
+  c.innerHTML=h+'</table></div>';
+  c.querySelectorAll("button[data-bh]").forEach(function(b){
+    b.onclick=function(){
+      var hw=b.getAttribute("data-bh");
+      if(!confirm("Shu HWID bloklansinmi?\n"+hw))return;
+      api("/rest/v1/banned_hwids",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=representation"},body:JSON.stringify({hwid:hw,reason:"Gumon: "+b.getAttribute("data-em")})}).then(load).catch(function(e){alert(e.message)});
+    };
+  });
+  c.querySelectorAll("button[data-ub]").forEach(function(b){
+    b.onclick=function(){
+      if(!confirm("Blok ochilsinmi?"))return;
+      api("/rest/v1/banned_hwids?hwid=eq."+encodeURIComponent(b.getAttribute("data-ub")),{method:"DELETE"}).then(load).catch(function(e){alert(e.message)});
+    };
+  });
 }
 
 /* ---------- SOZLAMALAR ---------- */
