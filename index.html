@@ -120,6 +120,11 @@ footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);d
 .prof input:focus{border-color:var(--pink)}
 .pcard .row{display:flex;gap:8px;flex-wrap:wrap}
 .pcard .row .btn{flex:1;justify-content:center;white-space:nowrap}
+.pinput{width:100%;background:#14141d;border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:#fff;font-size:15px;outline:none;transition:border-color .18s,box-shadow .18s}
+.pinput:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(168,85,247,.22)}
+.pinput::placeholder{color:#5b5666}
+.pinput.code{font-family:ui-monospace,Consolas,monospace;letter-spacing:.14em;text-transform:uppercase;font-weight:800}
+.flabel{display:block;font-size:11px;font-weight:900;letter-spacing:.12em;color:var(--muted);margin:0 0 6px}
 .chips span.hot{border-color:var(--pink);color:#e9d5ff;background:rgba(168,85,247,.1)}
 .pf-top{display:flex;align-items:center;gap:14px;position:relative}
 .pf-top::before{content:"";position:absolute;top:-28px;left:-28px;right:-28px;height:120px;background:radial-gradient(400px 120px at 20% 0%,rgba(168,85,247,.25),transparent 70%);pointer-events:none}
@@ -211,12 +216,12 @@ html{scroll-behavior:smooth}
       <p id="hwidLine" style="color:var(--muted);font-size:13px;margin:0 0 12px">HWID: —</p>
       <div class="row"><button class="btn btn-pink" onclick="location.href='obuna.html'">Obuna olish →</button></div>
     </div>
-    <div class="pcard"><b>🎟 Promocode</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Kod yozib obuna ol. Masalan: UZUMVIP</p>
-      <div class="row"><input id="pfPromoInput" placeholder="Promo-kod" style="flex:2;min-width:110px"><button class="btn btn-pink" onclick="applyPfPromo()">OK</button></div>
+    <div class="pcard"><b>🎟 Promocode</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Admin bergan kodni yozib obuna ol.</p>
+      <div class="row"><input id="pfPromoInput" class="pinput code" placeholder="KODNI YOZING" style="flex:2;min-width:110px"><button class="btn btn-pink" onclick="applyPfPromo()">OK</button></div>
       <div class="err" id="pfPromoErr" style="margin:10px 0 0"></div><p id="pfPromoOk" style="display:none;color:#3ddc84;font-size:13px;margin:10px 0 0"></p>
     </div>
-    <div class="pcard"><b>🔒 Parol</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Hozirgi parolni tasdiqla.</p>
-      <div style="display:grid;gap:8px"><input id="oldPass" type="password" placeholder="Hozirgi parol"><input id="newPass" type="password" placeholder="Yangi (6+ belgi)"></div>
+    <div class="pcard"><b>🔒 Parol</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Hozirgi parolni tasdiqlab, yangisini qo‘ying.</p>
+      <div style="display:grid;gap:10px"><div><label class="flabel" for="oldPass">HOZIRGI PAROL</label><input id="oldPass" class="pinput" type="password" placeholder="••••••••"></div><div><label class="flabel" for="newPass">YANGI PAROL (6+ BELGI)</label><input id="newPass" class="pinput" type="password" placeholder="Yangi parol"></div></div>
       <div class="err" id="passErr" style="margin:10px 0 0"></div>
       <div style="margin-top:10px"><button class="btn btn-pink" style="width:100%;justify-content:center" onclick="changePass()">Saqlash</button></div>
     </div>
