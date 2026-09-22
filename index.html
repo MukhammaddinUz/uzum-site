@@ -488,6 +488,8 @@ function paintUser(){
  document.getElementById('adminLink').style.display=(s&&s.toLowerCase()==='muxammaddin')?'':'none';
 }
 paintUser();paintPlan();
+// Soxta (demo) HWID larni bir marta tozalash: UC-XXXX-XXXX-XXXX formatdagilar
+(function cleanFakeHwids(){try{const u=getUsers();let ch=false;Object.keys(u).forEach(k=>{if(/^UC-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(u[k].hwid||'')){u[k].hwid='';ch=true}});if(ch)saveUsers(u)}catch(e){}})();
 if(location.hash==='#login'){history.replaceState(null,'',location.pathname);openAuth('login')}
 // OBUNA VIEW — alohida sahifa hissi, reloadsiz (navbar o'zgarmaydi)
 const profileView=document.getElementById('profileView');
