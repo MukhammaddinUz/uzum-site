@@ -370,7 +370,8 @@ function downloadClient(){
  if(!s){toast('Avval Register / Kirish qil!');openAuth('register');return}
  const p=getPlan();
  if(!p){toast('Avval obuna sotib ol!');location.href='obuna.html';return}
- toast('UZUM CLIENT v2.5 ('+p.name+') yuklanmoqda... (demo)');
+  toast('Mod fayl Telegram orqali beriladi. Yozing →');
+  try{window.open('https://t.me/UZUMCLIENTSUPPORT','_blank')}catch(e){location.href='https://t.me/UZUMCLIENTSUPPORT'}
 }
 // AUTH (localStorage demo)
 let mode='login';
@@ -393,8 +394,6 @@ function isValidEmail(m){return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}
 function isValidNick(n){return /^[A-Za-z0-9_]{3,16}$/.test(n)}
 function getUsers(){try{return JSON.parse(localStorage.getItem('uzumclient_users')||'{}')}catch{return{}}}
 function saveUsers(u){localStorage.setItem('uzumclient_users',JSON.stringify(u))}
-// Admin akkauntini birinchi ochilishda tayyorlab qo'yamiz
-(function seedAdmin(){try{const u=getUsers();if(!u['muxammaddin']){u['muxammaddin']={nick:'Muxammaddin',mail:'muxammaddintairov01@gmail.com',pass:hashPass('Muxa19091986'),ts:Date.now()};saveUsers(u)}}catch(e){}})();
 function doRegister(){
  const nick=document.getElementById('rgNick').value.trim(),mail=document.getElementById('rgMail').value.trim().toLowerCase(),pass=document.getElementById('rgPass').value;
  if(!isValidNick(nick))return showErr('Username 3-16 belgi: faqat lotin harflar, raqam va _ . Probel va boshqa belgilar mumkin emas.');
@@ -463,7 +462,8 @@ document.getElementById('pfAvaWrap').addEventListener('click',()=>document.getEl
 function downloadMod(){
  const p=getPlan();
  if(!p){toast('Avval obuna sotib ol!');location.href='obuna.html';return}
- toast('UZUM CLIENT mod ('+p.name+') yuklanmoqda... (demo)');
+  toast('Mod fayl Telegram orqali beriladi. Yozing →');
+  try{window.open('https://t.me/UZUMCLIENTSUPPORT','_blank')}catch(e){location.href='https://t.me/UZUMCLIENTSUPPORT'}
 }
 function licenseKey(nick,hwid,exp){const h=hashPass(nick+'|'+hwid+'|'+exp).replace('h$','').toUpperCase();const s=(h+'000000000000').slice(0,12);return 'UC-'+s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8,12)}
 function downloadConfig(){
