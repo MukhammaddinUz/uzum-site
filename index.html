@@ -209,7 +209,7 @@ html{scroll-behavior:smooth}
     <input id="pfAva" type="file" accept="image/*" style="display:none">
   </div>
   <div class="pf-cards" style="margin-bottom:30px">
-    <div class="pcard"><b>⬇ Yuklashlar</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Mod — obuna bilan. Config — bepul.</p>
+    <div class="pcard"><b>⬇ Yuklashlar</b><p style="color:var(--muted);font-size:13px;margin:4px 0 12px">Mod va config — faqat obuna bilan.</p>
       <div class="row"><button class="btn btn-pink" onclick="downloadMod()">Modni yuklash</button><button class="btn btn-pink" onclick="downloadConfig()">Configni yuklash</button></div>
     </div>
     <div class="pcard"><b>💎 Obunam</b><p style="margin:8px 0 4px"><span class="pill no" id="planPill">Obuna yo'q</span></p><p id="planDesc" style="color:var(--muted);font-size:13px;margin:4px 0 12px">Hozircha faol obunang yo'q.</p>
@@ -467,8 +467,10 @@ function downloadMod(){
 }
 function licenseKey(nick,hwid,exp){const h=hashPass(nick+'|'+hwid+'|'+exp).replace('h$','').toUpperCase();const s=(h+'000000000000').slice(0,12);return 'UC-'+s.slice(0,4)+'-'+s.slice(4,8)+'-'+s.slice(8,12)}
 function downloadConfig(){
- const u=curUser();if(!u)return;
- const p=getPlan(),hw=u.hwid||'UNBOUND',ex=p?(p.exp||0):0;
+  const u=curUser();if(!u)return;
+  const p=getPlan();
+  if(!p){toast('Avval obuna sotib ol!');location.href='obuna.html';return}
+  const hw=u.hwid||'UNBOUND',ex=p?(p.exp||0):0;
  const cfg={client:'UZUM CLIENT',version:'2.5',minecraft:'1.21.4',loader:'fabric',user:u.nick,fpsBoost:true,overlays:['combo','keystrokes','reach','fps'],hud:{theme:'uzum-dark'},license:{key:licenseKey(u.nick,hw,ex),hwid:hw,plan:p?p.name:'yo‘q',expires:p?(p.exp?new Date(p.exp).toISOString():'lifetime'):'yo‘q',active:!!p,note:'Mod shu kalit bilan HWID ni tekshiradi'}};
  const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='uzumclient-config.json';
