@@ -564,9 +564,12 @@ function paintUser(){
  const g=document.getElementById('guestBtns'),c=document.getElementById('userChip'),l=document.getElementById('logoutBtn');
  if(s){g.style.display='none';c.style.display='flex';l.style.display='inline-flex';const lu=getUsers()[s.toLowerCase()];const L=s[0].toUpperCase();const av=document.getElementById('userAvatar'),ai=document.getElementById('userAvatarImg');if(lu&&lu.ava){ai.src=lu.ava;ai.style.display='block';av.style.display='none'}else{ai.style.display='none';av.style.display='grid';av.textContent=L}}
  else{g.style.display='flex';c.style.display='none';l.style.display='none'}
- document.getElementById('adminLink').style.display=(s&&s.toLowerCase()==='muxammaddin')?'':'none';
+  document.getElementById('adminLink').style.display='none';
+  const rp=profGet();
+  if(s&&rp&&(rp.role==='ADMIN'||rp.role==='OWNER'))document.getElementById('adminLink').style.display='';
 }
 paintUser();paintPlan();
+if(sbGet()){sbRefresh().then(function(){paintUser()}).catch(function(){})}
 // Soxta (demo) HWID larni bir marta tozalash: UC-XXXX-XXXX-XXXX formatdagilar
 (function cleanFakeHwids(){try{const u=getUsers();let ch=false;Object.keys(u).forEach(k=>{if(/^UC-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/.test(u[k].hwid||'')){u[k].hwid='';ch=true}});if(ch)saveUsers(u)}catch(e){}})();
 if(location.hash==='#login'){history.replaceState(null,'',location.pathname);openAuth('login')}
