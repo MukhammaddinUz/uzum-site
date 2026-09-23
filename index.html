@@ -424,7 +424,7 @@ function profSet(p){if(p)localStorage.setItem('uzumclient_profile',JSON.stringif
 async function sbRefresh(){
   const s=sbGet();if(!s||!s.access_token)throw new Error('sessiya');
   try{
-    const rows=await supa("/rest/v1/profiles?select=id,email,username,hwid,sub_until,banned_hwid&limit=1",{},s.access_token);
+    const rows=await supa("/rest/v1/profiles?select=id,email,username,role,hwid,sub_until,banned_hwid&limit=1",{},s.access_token);
     if(!rows.length)throw new Error('profil');
     profSet(rows[0]);return rows[0];
   }catch(e){
