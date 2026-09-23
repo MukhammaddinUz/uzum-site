@@ -241,7 +241,7 @@ html{scroll-behavior:smooth}
     </div>
     <div id="atab-users">
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-        <input id="adminGiveNick" placeholder="Nick" style="flex:1;min-width:140px;background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px">
+        <input id="adminGiveNick" placeholder="Email" style="flex:1;min-width:140px;background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px">
         <select id="adminGivePlan" style="background:#0b0b12;border:1px solid var(--line);border-radius:12px;padding:12px;color:#fff;font-size:14px"><option>30 kunlik</option><option>90 kunlik</option><option>Cheksiz</option></select>
         <button class="btn btn-pink" onclick="adminGive()">Obuna berish</button>
       </div>
@@ -580,30 +580,39 @@ function revealIn(root){(root||document).querySelectorAll('.rv:not(.in)').forEac
 function showProfile(){paintProfile();sbRefresh().then(function(){paintProfile();paintUser()}).catch(function(){});hideSections();adminView.style.display='none';profileView.style.display='block';window.scrollTo(0,0);revealIn(profileView);navOn(null)}
 function showMain(){profileView.style.display='none';adminView.style.display='none';showSections();navOn(null)}
 function isAdmin(){const u=curUser();return !!(u&&u.nick.toLowerCase()==='muxammaddin')}
-function needAdmin(){if(isAdmin())return true;toast('Admin huquqi kerak.');return false}
-function showAdmin(){if(!curUser()){openAuth('login');return}if(!needAdmin())return;adminTab('users');hideSections();profileView.style.display='none';adminView.style.display='block';window.scrollTo(0,0);revealIn(adminView);navOn('#admin')}
+function needAdmin(){const p=profGet();const ok=!!(p&&(p.role==='ADMIN'||p.role==='OWNER'));if(!ok)toast('Admin huquqi kerak (Supabase OWNER/ADMIN).');return ok}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+async function sbApi(p,o){const s=sbGet();if(!s||!s.access_token)throw new Error('sessiya');return supa(p,o,s.access_token)}
+function subPlus(iso,days){let b=new Date();if(iso){const d=new Date(iso);if(!isNaN(d)&&d>b)b=d}return new Date(b.getTime()+days*864e5).toISOString()}
+async function showAdmin(){if(!curUser()){openAuth('login');return}try{await sbRefresh()}catch(e){openAuth('login');return}if(!needAdmin())return;adminTab('users');hideSections();profileView.style.display='none';adminView.style.display='block';window.scrollTo(0,0);revealIn(adminView);navOn('#admin')}
 function adminTab(t){
   document.querySelectorAll('#adminTabs button').forEach(b=>b.classList.toggle('on',b.getAttribute('data-t')===t));
   ['users','promo','sus','orders'].forEach(x=>{document.getElementById('atab-'+x).style.display=x===t?'block':'none'});
   renderAStats();renderAdmin();renderOrders();renderPromos();renderSuspects();
 }
-function suspectGroups(){
-  const users=getUsers(),byHwid={};
-  Object.keys(users).forEach(k=>{const u=users[k];if(!u.hwid)return;(byHwid[u.hwid]=byHwid[u.hwid]||[]).push(k)});
-  return Object.keys(byHwid).filter(h=>byHwid[h].length>1).map(h=>({hwid:h,nicks:byHwid[h]}));
-}
-function renderAStats(){
-  const users=getUsers(),os=getOrders(),defs=getPromoDefs(),groups=suspectGroups();
-  let active=0,blocked=0,pending=0;
-  Object.keys(users).forEach(k=>{const u=users[k];if(u.blocked)blocked++;if(planInfoOf(k).has)active++});
-  os.forEach(o=>{if(o.status==='pending')pending++});
-  document.getElementById('adminStats').innerHTML=
-    '<div class="astat"><b>'+Object.keys(users).length+'</b><span>Userlar</span></div>'+
-    '<div class="astat ok"><b>'+active+'</b><span>Faol obuna</span></div>'+
-    '<div class="astat"><b>'+pending+'</b><span>Kutilayotgan to‘lov</span></div>'+
-    '<div class="astat"><b>'+Object.keys(defs).length+'</b><span>Promokod</span></div>'+
-    '<div class="astat '+(groups.length?'warn':'')+'"><b>'+groups.length+'</b><span>Gumonli guruh</span></div>'+
-    '<div class="astat '+(blocked?'bad':'')+'"><b>'+blocked+'</b><span>Bloklangan</span></div>';
+async function renderAStats(){
+  try{
+    const users=await sbApi("/rest/v1/profiles?select=id,sub_until,banned_hwid");
+    const os=getOrders(),defs=getPromoDefs();
+    let active=0,banned=0,pending=0;
+    const now=new Date();
+    users.forEach(u=>{if(u.banned_hwid)banned++;if(u.sub_until&&new Date(u.sub_until)>now)active++});
+    os.forEach(o=>{if(o.status==='pending')pending++});
+    let sus=0;
+    try{
+      const at=await sbApi("/rest/v1/mod_attempts?select=email,hwid&order=created_at.desc&limit=500");
+      const byE={};
+      at.forEach(r=>{if(!r.email||!r.hwid)return;const e=r.email.toLowerCase();(byE[e]=byE[e]||{})[r.hwid]=1});
+      sus=Object.keys(byE).filter(e=>Object.keys(byE[e]).length>1).length;
+    }catch(e){}
+    document.getElementById('adminStats').innerHTML=
+      '<div class="astat"><b>'+users.length+'</b><span>Userlar</span></div>'+
+      '<div class="astat ok"><b>'+active+'</b><span>Faol obuna</span></div>'+
+      '<div class="astat"><b>'+pending+'</b><span>Kutilayotgan to‘lov</span></div>'+
+      '<div class="astat"><b>'+Object.keys(defs).length+'</b><span>Promokod</span></div>'+
+      '<div class="astat '+(sus?'warn':'')+'"><b>'+sus+'</b><span>Gumonli</span></div>'+
+      '<div class="astat '+(banned?'bad':'')+'"><b>'+banned+'</b><span>Bloklangan</span></div>';
+  }catch(e){document.getElementById('adminStats').innerHTML='<p style="color:var(--muted)">Yuklanmadi: '+esc(e.message)+'</p>'}
 }
 function renderPromos(){
   if(!needAdmin())return;
@@ -635,34 +644,50 @@ function promoDelete(code){
   const defs=getPromoDefs();delete defs[code];savePromoDefs(defs);
   renderPromos();renderAStats();toast('O‘chirildi.');
 }
-function renderSuspects(){
+async function renderSuspects(){
   if(!needAdmin())return;
-  const users=getUsers(),groups=suspectGroups(),box=document.getElementById('susList');
-  box.innerHTML=groups.map(g=>'<div class="suscard"><div style="margin-bottom:8px"><span class="acode">'+g.hwid+'</span> <span style="color:var(--muted);font-size:13px">'+g.nicks.length+' ta nick bitta HWID da</span></div>'+
-    g.nicks.map(k=>'<div class="row" style="align-items:center;margin-bottom:6px"><b>'+users[k].nick+'</b><span style="color:var(--muted);font-size:13px">'+users[k].mail+'</span><span style="flex:1"></span>'+(users[k].blocked?'<span class="pill bad">Bloklangan</span>':'<button class="abtns" style="border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer" onclick="adminBlock(\''+k+'\')">Bloklash</button>')+'</div>').join('')+
-    '<div class="row"><button class="abtns" style="border:1px solid #ff5064;background:transparent;color:#ff8fa3;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer" onclick="suspectBlockAll(\''+g.hwid+'\')">Hammasini bloklash</button></div></div>').join('')||'<div class="suscard okb">Gumonli harakat yo‘q. Hammasi toza ✅</div>';
-  const blocked=Object.keys(users).filter(k=>users[k].blocked);
-  document.getElementById('blockedList').innerHTML=blocked.map(k=>'<div class="row" style="align-items:center;margin-bottom:6px"><b>'+users[k].nick+'</b><span style="color:var(--muted);font-size:13px">'+users[k].mail+'</span><span style="flex:1"></span><button class="abtns" style="border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer" onclick="adminBlock(\''+k+'\')">Unblock</button></div>').join('')||'<p style="color:var(--muted);font-size:14px">Bo‘sh.</p>';
+  const box=document.getElementById('susList');
+  try{
+    const rows=await sbApi("/rest/v1/mod_attempts?select=email,hwid,created_at&order=created_at.desc&limit=500");
+    const banned=await sbApi("/rest/v1/banned_hwids?select=hwid");
+    const isB=(banned||[]).reduce((a,b)=>{a[b.hwid]=1;return a},{});
+    const byE={};
+    rows.forEach(r=>{if(!r.email||!r.hwid)return;const e=r.email.toLowerCase();if(!byE[e])byE[e]={email:r.email,hw:{}};byE[e].hw[r.hwid]=1});
+    const groups=Object.keys(byE).map(e=>({email:byE[e].email,hwids:Object.keys(byE[e].hw)})).filter(g=>g.hwids.length>1);
+    box.innerHTML=groups.map(g=>'<div class="suscard"><div style="margin-bottom:8px"><b>'+esc(g.email)+'</b> <span style="color:var(--muted);font-size:13px">'+g.hwids.length+' ta HWID</span></div>'+
+      g.hwids.map(hw=>'<div class="row" style="align-items:center;margin-bottom:6px"><span class="acode">'+esc(hw)+'</span><span style="flex:1"></span>'+(isB[hw]?'<span class="pill bad">Bloklangan</span>':'<button class="abtns" style="border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer" onclick="banHwid(\''+esc(hw)+'\')">Bloklash</button>')+'</div>').join('')+'</div>').join('')||'<div class="suscard okb">Gumonli harakat yo‘q. Hammasi toza ✅</div>';
+    const bl=await sbApi("/rest/v1/banned_hwids?select=hwid,reason,created_at&order=created_at.desc&limit=100");
+    document.getElementById('blockedList').innerHTML=bl.map(b=>'<div class="row" style="align-items:center;margin-bottom:6px"><span class="acode">'+esc(b.hwid)+'</span><span style="color:var(--muted);font-size:13px">'+esc(b.reason||'')+'</span><span style="flex:1"></span><button class="abtns" style="border:1px solid var(--line);background:#0b0b12;color:#fff;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer" onclick="unbanHwid(\''+esc(b.hwid)+'\')">Ochish</button></div>').join('')||'<p style="color:var(--muted);font-size:14px">Bo‘sh.</p>';
+  }catch(e){box.innerHTML='<p style="color:var(--muted)">Yuklanmadi: '+esc(e.message)+'</p>'}
 }
-function suspectBlockAll(hwid){
+async function banHwid(hw){
   if(!needAdmin())return;
-  if(!confirm('Shu HWID dagi hamma nick bloklansinmi?'))return;
-  const users=getUsers();let n=0;
-  Object.keys(users).forEach(k=>{if(users[k].hwid===hwid&&k!=='muxammaddin'&&!users[k].blocked){users[k].blocked=true;n++}});
-  saveUsers(users);renderSuspects();renderAdmin();renderAStats();toast(n+' ta akkaunt bloklandi.');
+  if(!confirm('Shu HWID bloklansinmi?'))return;
+  try{await sbApi("/rest/v1/banned_hwids",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=representation"},body:JSON.stringify({hwid:hw,reason:'sayt admin'})});refreshAdmin();toast('Bloklandi.')}catch(e){toast(e.message)}
+}
+async function unbanHwid(hw){
+  if(!needAdmin())return;
+  if(!confirm('Blok ochilsinmi?'))return;
+  try{await sbApi("/rest/v1/banned_hwids?hwid=eq."+encodeURIComponent(hw),{method:"DELETE"});refreshAdmin();toast('Ochildi.')}catch(e){toast(e.message)}
 }
 function planInfoOf(nick){const pl=getPlansAll()[nick.toLowerCase()];if(!pl)return{has:false};if(pl.exp&&pl.exp<Date.now())return{has:false,expired:true};if(!pl.exp)return{has:true,text:pl.name+' • Cheksiz'};return{has:true,text:pl.name+' • '+Math.max(0,Math.ceil((pl.exp-Date.now())/864e5))+' kun qoldi',until:new Date(pl.exp).toLocaleDateString('uz-UZ')}}
-function renderAdmin(){
- if(!needAdmin())return;
- const users=getUsers(),tb=document.getElementById('adminRows');
- tb.innerHTML=Object.keys(users).sort().map(k=>{const u=users[k],pi=planInfoOf(k);
-  const st=u.blocked?'<span class="pill bad">Bloklangan</span>':(pi.has?'<span class="pill ok">Faol</span>':'<span class="pill no">Faol emas</span>');
-  return '<tr><td><b>'+u.nick+'</b></td><td>'+u.mail+'</td><td>'+(pi.has?pi.text:'—')+'</td><td>'+(pi.until||'—')+'</td><td><code class="ip">'+(u.hwid||'—')+'</code></td><td>'+st+'</td>'+
-  '<td><div class="abtns"><button onclick="adminRemovePlan(\''+k+'\')">Obunani olish</button><button onclick="adminResetHwid(\''+k+'\')">HWID</button><button onclick="adminRestart(\''+k+'\')">Restart</button><button class="danger" onclick="adminBlock(\''+k+'\')">'+(u.blocked?'Unblock':'Block')+'</button></div></td></tr>'}).join('')||'<tr><td colspan="7">Foydalanuvchi yo‘q.</td></tr>';
+async function renderAdmin(){
+  if(!needAdmin())return;
+  const tb=document.getElementById('adminRows');
+  try{
+    const users=await sbApi("/rest/v1/profiles?select=id,username,email,role,sub_until,hwid,banned_hwid&order=created_at.desc&limit=200");
+    const now=new Date();
+    tb.innerHTML=users.map(u=>{
+      const act=u.sub_until&&new Date(u.sub_until)>now;
+      const st=u.banned_hwid?'<span class="pill bad">Bloklangan</span>':(act?'<span class="pill ok">Faol</span>':'<span class="pill no">Faol emas</span>');
+      const sub=act?esc(u.sub_until.slice(0,10))+' ('+Math.max(0,Math.ceil((new Date(u.sub_until)-now)/864e5))+' kun)':'—';
+      return '<tr><td><b>'+esc(u.username||'')+'</b></td><td>'+esc(u.email)+'</td><td>'+(act?'<span class="pill ok">Faol</span>':'—')+'</td><td>'+sub+'</td><td><code class="ip">'+esc((u.hwid||'').slice(0,12))+(u.hwid?'…':'—')+'</code></td><td>'+st+'</td>'+
+      '<td><div class="abtns"><button onclick="adminRemovePlan(\''+u.id+'\')">Obunani olish</button><button onclick="adminResetHwid(\''+u.id+'\')">HWID</button><button onclick="adminRestart(\''+u.id+'\')">Restart</button><button class="danger" onclick="adminBlock(\''+u.id+'\')">'+(u.banned_hwid?'Unblock':'Block')+'</button></div></td></tr>'}).join('')||'<tr><td colspan="7">Foydalanuvchi yo‘q.</td></tr>';
+  }catch(e){tb.innerHTML='<tr><td colspan="7">Yuklanmadi: '+esc(e.message)+'</td></tr>'}
 }
 function getOrders(){try{return JSON.parse(localStorage.getItem('uzumclient_orders')||'[]')}catch{return[]}}
 function saveOrders(o){localStorage.setItem('uzumclient_orders',JSON.stringify(o))}
-function planDays(pname){return pname==='30 kunlik'?30:pname==='90 kunlik'?90:0}
+function planDays(pname){pname=String(pname||'');if(pname.indexOf('90')>=0)return 90;if(pname.indexOf('Cheksiz')>=0)return 36500;return 30}
 function renderOrders(){
  const tb=document.getElementById('orderRows');if(!tb)return;
  const os=getOrders().slice().reverse();
@@ -670,12 +695,17 @@ function renderOrders(){
  '<td>'+(o.status==='pending'?'<div class="abtns"><button onclick="approveOrder(\''+o.id+'\')">Tasdiqlash</button><button class="danger" onclick="rejectOrder(\''+o.id+'\')">Rad etish</button></div>':'—')+'</td></tr>').join('')||'<tr><td colspan="7">So‘rov yo‘q.</td></tr>';
 }
 function refreshAdmin(){renderAStats();renderAdmin();renderOrders();renderPromos();renderSuspects();}
-function approveOrder(id){
- if(!needAdmin())return;
- const os=getOrders(),o=os.find(x=>x.id===id);if(!o)return;
- const d=planDays(o.plan);
-  setPlan(o.nick,{name:o.plan,ts:Date.now(),exp:d?Date.now()+d*864e5:null});
-  o.status='approved';saveOrders(os);refreshAdmin();toast(o.nick+': obuna tasdiqlandi ✓');
+async function approveOrder(id){
+  if(!needAdmin())return;
+  const os=getOrders(),o=os.find(x=>x.id===id);if(!o)return;
+  if(o.status!=='pending')return;
+  try{
+    const rows=await sbApi("/rest/v1/profiles?select=id,sub_until&email=ilike."+encodeURIComponent(o.mail||''));
+    if(!rows.length)throw new Error('Supabase da bu email topilmadi: '+(o.mail||'—'));
+    const u=rows[0],d=planDays(o.plan);
+    await sbApi("/rest/v1/profiles?id=eq."+u.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({sub_until:subPlus(u.sub_until,d)})});
+    o.status='approved';saveOrders(os);refreshAdmin();toast(o.nick+': obuna tasdiqlandi ✓');
+  }catch(e){toast(e.message)}
 }
 function rejectOrder(id){
  if(!needAdmin())return;
@@ -684,25 +714,32 @@ function rejectOrder(id){
 }
 function openReceipt(src){document.getElementById('imgBoxPic').src=src;document.getElementById('imgBox').classList.add('show')}
 function closeReceipt(){const o=document.getElementById('imgBox');if(o)o.classList.remove('show')}
-function adminGive(){
- if(!needAdmin())return;
- const nick=document.getElementById('adminGiveNick').value.trim().toLowerCase();
- const pname=document.getElementById('adminGivePlan').value;
- const users=getUsers();
- if(!users[nick])return toast('Bunday nick topilmadi.');
- const days=pname==='30 kunlik'?30:pname==='90 kunlik'?90:0;
-  setPlan(nick,{name:pname,ts:Date.now(),exp:days?Date.now()+days*864e5:null});
-  refreshAdmin();toast(nick+' ga '+pname+' berildi ✓');
+async function adminGive(){
+  if(!needAdmin())return;
+  const mail=document.getElementById('adminGiveNick').value.trim();
+  const pname=document.getElementById('adminGivePlan').value;
+  if(!mail||mail.indexOf('@')<0)return toast('Email yozing.');
+  const days=pname==='30 kunlik'?30:pname==='90 kunlik'?90:36500;
+  try{
+    const rows=await sbApi("/rest/v1/profiles?select=id,sub_until&email=ilike."+encodeURIComponent(mail));
+    if(!rows.length)throw new Error('Bu email Supabase da topilmadi.');
+    await sbApi("/rest/v1/profiles?id=eq."+rows[0].id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({sub_until:subPlus(rows[0].sub_until,days)})});
+    document.getElementById('adminGiveNick').value='';refreshAdmin();toast(mail+' ga '+pname+' berildi ✓');
+  }catch(e){toast(e.message)}
 }
-function adminRemovePlan(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);refreshAdmin();if((localStorage.getItem('uzumclient_session')||'').toLowerCase()===nick)paintPlan();toast(nick+': obuna olib tashlandi.')}
-function adminResetHwid(nick){if(!needAdmin())return;const users=getUsers();if(!users[nick.toLowerCase()])return;users[nick.toLowerCase()].hwid='';saveUsers(users);refreshAdmin();toast(nick+': HWID tozalandi. Moddan kirganda yangisi bog‘lanadi.')}
-function adminRestart(nick){if(!needAdmin())return;const a=getPlansAll();delete a[nick.toLowerCase()];savePlansAll(a);const users=getUsers();if(users[nick.toLowerCase()]){users[nick.toLowerCase()].hwid='';saveUsers(users)}refreshAdmin();toast(nick+': akkaunt restart qilindi (obuna+HWID tozalandi).')}
-function adminBlock(nick){
- if(!needAdmin())return;
- if(nick.toLowerCase()==='muxammaddin')return toast('O‘zingni bloklay olmaysan.');
- const users=getUsers();if(!users[nick.toLowerCase()])return;
-  users[nick.toLowerCase()].blocked=!users[nick.toLowerCase()].blocked;saveUsers(users);refreshAdmin();
- toast(nick+(users[nick.toLowerCase()].blocked?': bloklandi.':': blokdan chiqarildi.'));
+async function adminRemovePlan(id){if(!needAdmin())return;try{await sbApi("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({sub_until:null})});refreshAdmin();toast('Obuna olib tashlandi.')}catch(e){toast(e.message)}}
+async function adminResetHwid(id){if(!needAdmin())return;try{await sbApi("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({hwid:null})});refreshAdmin();toast('HWID tozalandi. Moddan kirganda yangisi bog‘lanadi.')}catch(e){toast(e.message)}}
+async function adminRestart(id){if(!needAdmin())return;try{await sbApi("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({sub_until:null,hwid:null})});refreshAdmin();toast('Akkaunt restart qilindi (obuna+HWID tozalandi).')}catch(e){toast(e.message)}}
+async function adminBlock(id){
+  if(!needAdmin())return;
+  try{
+    const me=curUser();
+    const rows=await sbApi("/rest/v1/profiles?select=banned_hwid,email&id=eq."+id);
+    if(!rows.length)throw new Error('Topilmadi.');
+    if(me&&me.mail&&rows[0].email&&rows[0].email.toLowerCase()===me.mail.toLowerCase())return toast('O‘zingni bloklay olmaysan.');
+    await sbApi("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({banned_hwid:!rows[0].banned_hwid})});
+    refreshAdmin();toast(rows[0].banned_hwid?'Blokdan chiqarildi.':'Bloklandi.');
+  }catch(e){toast(e.message)}
 }
 document.querySelectorAll('a[href^="#"]').forEach(a=>{const h=a.getAttribute('href');if(false){}else if(h==='#admin'){a.addEventListener('click',e=>{e.preventDefault();showAdmin()})}else if(h&&h!=='#login'){a.addEventListener('click',()=>{if(profileView.style.display==='block'||adminView.style.display==='block')showMain()})}});
 if(location.hash==='#profil'){openProfile()}
