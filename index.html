@@ -449,8 +449,9 @@ async function doRegister(){
   if(pass.length<6)return showErr('Parol kamida 6 belgi bo‘lsin.');
   try{
     const r=await supa("/auth/v1/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:mail,password:pass,options:{data:{username:nick}}})});
-    if(!r.session||!r.session.access_token)throw new Error('Ro‘yxatdan o‘tildi. Email tasdiqlangach kiring.');
-    sbSet({access_token:r.session.access_token,refresh_token:r.session.refresh_token||'',uid:(r.user&&r.user.id)||''});
+    const sess=r.session||r;
+    if(!sess.access_token)throw new Error('Ro‘yxatdan o‘tildi. Email tasdiqlangach kiring.');
+    sbSet({access_token:sess.access_token,refresh_token:sess.refresh_token||'',uid:(r.user&&r.user.id)||''});
     const key=ensureDemoRow(nick,mail);
     localStorage.setItem('uzumclient_session',getUsers()[key].nick);
     try{await sbRefresh()}catch(e){}
