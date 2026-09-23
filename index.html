@@ -404,8 +404,18 @@ async function supa(p,o,tok){
   const r=await fetch(SUPA_H+p,o);
   const ct=r.headers.get("content-type")||"";
   const b=ct.indexOf("application/json")>=0?await r.json():await r.text();
-  if(!r.ok)throw new Error((b&&b.message)||("Xato "+r.status));
+  if(!r.ok)throw new Error((b&&((b).message||(b).msg||(b).error_description))||("Xato "+r.status));
   return b;
+}
+function friendlyAuthErr(m){
+  m=String(m||'');
+  if(/already registered|already exists|band/i.test(m))return 'Bu email band! Kirish qilib ko‘ring.';
+  if(/password.*(6|least|short|weak)|weak/i.test(m))return 'Parol kuchsiz — kamida 6 belgi, harf+raqam qo‘ying.';
+  if(/invalid.*login|invalid login credentials/i.test(m))return 'Login yoki parol noto‘g‘ri.';
+  if(/email.*confirm|confirm.*email/i.test(m))return 'Email tasdiqlangach kiring.';
+  if(/rate|limit|429/i.test(m))return 'Ko‘p urinish — 1 daqiqadan keyin qayta urinib ko‘ring.';
+  if(/422/.test(m))return 'Ma’lumot xato — email/parolni tekshirib qayta urinib ko‘ring.';
+  return m;
 }
 function sbGet(){try{return JSON.parse(localStorage.getItem('uzumclient_sb')||'null')}catch(e){return null}}
 function sbSet(s){if(s)localStorage.setItem('uzumclient_sb',JSON.stringify(s));else localStorage.removeItem('uzumclient_sb')}
@@ -445,7 +455,7 @@ async function doRegister(){
     localStorage.setItem('uzumclient_session',getUsers()[key].nick);
     try{await sbRefresh()}catch(e){}
     closeAuth();toast('Tabriklaymiz, '+nick+'! ✓');paintUser();
-  }catch(e){showErr(e.message==='Ro‘yxatdan o‘tildi. Email tasdiqlangach kiring.'?e.message:(/already|band|exists/i.test(e.message)?'Bu email band! Kirish qilib ko‘ring.':e.message))}
+  }catch(e){showErr(e.message==='Ro‘yxatdan o‘tildi. Email tasdiqlangach kiring.'?e.message:friendlyAuthErr(e.message))}
   paintUser();
 }
 async function doLogin(){
@@ -465,7 +475,7 @@ async function doLogin(){
     localStorage.setItem('uzumclient_session',getUsers()[key].nick);
     try{await sbRefresh()}catch(e){}
     closeAuth();toast('Xush kelibsan, '+getUsers()[key].nick+'!');paintUser();
-  }catch(e){showErr(/Invalid|invalid|Noto‘g‘ri|topilmadi|Login/i.test(e.message)?'Login yoki parol noto‘g‘ri.':e.message)}
+  }catch(e){showErr(friendlyAuthErr(e.message))}
 }
 function logout(){const s=sbGet();if(s&&s.access_token){supa("/auth/v1/logout",{method:"POST",headers:{"Content-Type":"application/json"}},s.access_token).catch(function(){})}sbSet(null);profSet(null);localStorage.removeItem('uzumclient_session');closeProfile();paintUser();toast('Chiqdingiz.')}
 function curUser(){
